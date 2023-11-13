@@ -1,0 +1,6 @@
+#+title: Readme
+
+* Star-cl
+Port of starintel-doc to common lisp
+
+Mostly will be used by hackmode
