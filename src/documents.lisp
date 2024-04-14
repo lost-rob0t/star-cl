@@ -36,11 +36,18 @@
                                                          (ironclad:ascii-string-to-byte-array data)))))
 
 
+
+
+
 (defgeneric set-type (doc)
   (:documentation "Set the type of a Booker document"))
 
 (defmethod set-type ((doc document))
-  (setf (doc-type doc) (type-of doc)))
+  (let* ((full-type (type-of doc))
+         (type-parts (uiop:split-string (symbol-name full-type) :separator ":"))
+         (type-name (car (last type-parts))))
+    (setf (doc-type doc) (str:title-case type-name))))
+
 
 (defgeneric set-meta (doc dataset)
   (:documentation "Set the metadata of a Booker document"))
@@ -48,4 +55,5 @@
 (defmethod set-meta ((doc document) dataset)
   (setf (doc-dataset doc) dataset)
   (timestamp doc)
-  (set-type doc))
+  (set-type doc)
+  doc)
