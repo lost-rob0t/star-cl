@@ -10,7 +10,7 @@
   ((id :accessor doc-id :type string :initarg :id :initform "")
    (dataset :accessor doc-dataset :type string :initarg :dataset :initform "")
    (dtype :accessor doc-type :type string :initarg :dtype :initform "")
-
+   (sources :accessor doc-sources :type list :initform nil)
    (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
    (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
 

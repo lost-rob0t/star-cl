@@ -140,4 +140,5 @@
    #:new-user
    #:new-username
    #:doc-added
-   #:doc-type))
+   #:doc-type
+   #:doc-sources))
