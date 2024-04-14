@@ -1,11 +1,11 @@
 (in-package :starintel)
 
-(defclass booker-geo (booker-document)
+(defclass geo (document)
   ((lat :accessor geo-lat :type float64 :initarg :lat)
    (long :accessor geo-long :type float64 :initarg :long)
    (alt :accessor geo-alt :type float64 :initarg :alt)))
 
-(defclass booker-address (booker-geo)
+(defclass address (geo)
   ((city :accessor address-city :type string :initarg :city)
    (state :accessor address-state :type string :initarg :state)
    (postal :accessor address-postal :type string :initarg :postal)
@@ -15,6 +15,6 @@
 
 (defun new-address (street street2 city postal state country lat &optional long)
   "Create a New Booker Address"
-  (let ((address (make-instance 'booker-address :street street :street2 street2 :city city :postal postal :state state :country country :lat lat :long (or long 0.0))))
+  (let ((address (make-instance 'address :street street :street2 street2 :city city :postal postal :state state :country country :lat lat :long (or long 0.0))))
     (hash-id address (format nil "~a~a~a~a~a~a~a" street street2 city postal state country lat))
     address))

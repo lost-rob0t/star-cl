@@ -1,5 +1,5 @@
 (in-package :starintel)
-(defclass booker-target (booker-root-obj)
+(defclass target (root-obj)
   ((id :accessor target-id :type string :initarg :id)
    (actor :accessor target-actor :type string :initarg :actor)
    (dataset :accessor target-dataset :type string :initarg :dataset)
@@ -8,7 +8,7 @@
 
 (defun new-target (dataset target actor &optional options)
   "Create a New Booker Target"
-  (let ((target (make-instance 'booker-target :id (generate-uuid) :dataset dataset :target target :actor actor :options (or options '()))))
+  (let ((target (make-instance 'target :id (generate-uuid) :dataset dataset :target target :actor actor :options (or options '()))))
     (hash-id target (format nil "~a~a~a" dataset target actor))
     target))
 
