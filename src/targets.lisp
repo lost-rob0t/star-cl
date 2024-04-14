@@ -1,10 +1,11 @@
 (in-package :starintel)
+
 (defclass target (root-obj)
-  ((id :accessor target-id :type string :initarg :id)
-   (actor :accessor target-actor :type string :initarg :actor)
-   (dataset :accessor target-dataset :type string :initarg :dataset)
-   (target :accessor target-target :type string :initarg :target)
-   (options :accessor target-options :type list :initarg :options)))
+  ((id :accessor target-id :type string :initarg :id :initform "")
+   (actor :accessor target-actor :type string :initarg :actor :initform (error "target requires an actor"))
+   (dataset :accessor target-dataset :type string :initarg :dataset :initform (error "target require a dataset"))
+   (target :accessor target-target :type string :initarg :target :initform (error "target requires a target to be set."))
+   (options :accessor target-options :type list :initarg :options :initform '())))
 
 (defun new-target (dataset target actor &optional options)
   "Create a New Booker Target"

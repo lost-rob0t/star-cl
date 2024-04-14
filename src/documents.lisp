@@ -5,15 +5,14 @@
      (encode-universal-time 0 0 0 1 1 1970 0)))
 
 
-(defclass document ()
-  ((id :accessor doc-id :type string :initarg :id)
-   (dataset :accessor doc-dataset :type string :initarg :dataset)
-   (dtype :accessor doc-dtype :type string :initarg :dtype)
 
-   ;; Will need to  fix this in nim and make a proper document spec laying everything out
-   ;; This is a poor relic from starintel OG python version
-   (date-updated :accessor doc-updated :type integer :initarg :date-updated)
-   (date-added :accessor doc-updated :type integer :initarg :date-added)))
+(defclass document ()
+  ((id :accessor doc-id :type string :initarg :id :initform "")
+   (dataset :accessor doc-dataset :type string :initarg :dataset :initform "")
+   (dtype :accessor doc-type :type string :initarg :dtype :initform "")
+
+   (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
+   (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
 
 
 ;; Not really needed but itsfor my own santiy from documents.nim

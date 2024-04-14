@@ -1,10 +1,11 @@
 (in-package :starintel)
 
 (defclass phone (document)
-  ((number :accessor phone-number :type string :initarg :number)
-   (carrier :accessor phone-carrier :type string :initarg :carrier)
-   (status :accessor phone-status :type string :initarg :status)
-   (phone-type :accessor phone-type :type string :initarg :phone-type)))
+  ((number :accessor phone-number :type string :initarg :number :initform (error "Phone number is required"))
+   (carrier :accessor phone-carrier :type string :initarg :carrier :initform "")
+   (status :accessor phone-status :type string :initarg :status :initform "")
+   (phone-type :accessor phone-type :type string :initarg :phone-type :initform "")))
+
 
 (defun new-phone (number carrier status &optional phone-type)
   "Create a New Booker Phone"

@@ -2,14 +2,12 @@
 (uiop:define-package :starintel
   (:nicknames :spec)
   (:import-from :alexandria :flatten)
-  (:use :cl )
+  (:use :cl)
   (:export
    #:unix-now
    #:document
    #:doc-id
    #:doc-dataset
-   #:doc-dtype
-   #:doc-updated
    #:doc-updated
    #:make-uuid
    #:timestamp
@@ -140,4 +138,6 @@
    #:new-email
    #:new-email-with-password
    #:new-user
-   #:new-username))
+   #:new-username
+   #:doc-added
+   #:doc-type))

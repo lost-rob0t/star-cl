@@ -1,11 +1,8 @@
 (in-package :starintel)
 
-(defclass web (document)
-  ((source :accessor web-source :type string :initarg :source)))
-
-(defclass domain (web document)
-  ((record-type :accessor domain-record-type :type string :initarg :record-type)
-   (record :accessor domain-record :type string :initarg :record)
+(defclass domain (document)
+  ((record-type :accessor domain-record-type :type string :initarg :record-type :initform (error "Domain record type is required"))
+   (record :accessor domain-record :type string :initarg :record :initform (error "Domain record is required"))
    (ip :accessor domain-ip :type string :initarg :ip)))
 
 (defclass port ()
@@ -16,18 +13,18 @@
   ((number :accessor asn-number :type int32 :initarg :number)
    (subnet :accessor asn-subnet :type string :initarg :subnet)))
 
-(defclass network (web document)
-  ((org :accessor network-org :type string :initarg :org)
-   (asn :accessor network-asn :type asn :initarg :asn)))
+(defclass network (document)
+  ((org :accessor network-org :type string :initarg :org :initform (error "Network org name is required"))
+   (asn :accessor network-asn :type asn :initarg :asn :initform (error "Network ASN is required"))))
 
-(defclass host (web document)
-  ((hostname :accessor host-hostname :type string :initarg :hostname)
-   (ip :accessor host-ip :type string :initarg :ip)
+(defclass host (document)
+  ((hostname :accessor host-hostname :type string :initarg :hostname :initform (error "Hostname is required"))
+   (ip :accessor host-ip :type string :initarg :ip :initform (error "IP address is required"))
    (ports :accessor host-ports :type list :initarg :ports)
    (os :accessor host-os :type string :initarg :os)))
 
-(defclass url (web document)
-  ((url :accessor url-url :type string :initarg :url)
+(defclass url (document)
+  ((url :accessor url-url :type string :initarg :url :initform (error "URL is required"))
    (content :accessor url-content :type string :initarg :content)))
 
 (defun new-domain (domain record-type &optional ip)

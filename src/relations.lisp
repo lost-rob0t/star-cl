@@ -1,9 +1,10 @@
 (in-package :starintel)
 
 (defclass relation (document)
-  ((source :accessor relation-source :type string :initarg :source)
-   (target :accessor relation-target :type string :initarg :target)
-   (note :accessor relation-note :type string :initarg :note)))
+  ((source :accessor relation-source :type string :initarg :source :initform "")
+   (target :accessor relation-target :type string :initarg :target :initform "")
+   (note :accessor relation-note :type string :initarg :note :initform "")))
+
 
 (defun new-relation (source target &optional note dataset)
   "Create a New Booker Relation"
