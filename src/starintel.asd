@@ -2,7 +2,7 @@
   :description "Star Intel is a document Spec for handling osint data"
   :author "nsaspy"
   :license "LGLv3"
-  :version "0.1.0"
+  :version "0.7.1"
   :serial t
   :depends-on (#:jsown #:ironclad #:local-time #:uuid)
   :components ((:file "package")

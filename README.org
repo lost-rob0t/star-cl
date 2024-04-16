@@ -3,4 +3,19 @@
 * Star-cl
 Port of starintel-doc to common lisp
 
-Mostly will be used by hackmode
+Mostly will be used by hackmode and starintel-gserver.
+
+
+** Differences from doc-nim
+
++ Person doesnt inherit from eid
++ there is no testing for in-scope or out-scope
+
+
+
+
+** Future plans
+
+This version of the spec, one day will be the defacto stanadard and will be used to generate other spec libs. It gets old re-writing this stuff by hand and most of it is very basic, no advanced functionality other then setting fields
+
+See [[file:./TODO.org][Todo list]] for list of stuff i havent done yet

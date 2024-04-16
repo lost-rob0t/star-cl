@@ -141,4 +141,11 @@
    #:new-username
    #:doc-added
    #:doc-type
-   #:doc-sources))
+   #:doc-sources
+   #:scope
+   #:scope-description
+   #:scope-out
+   #:scope-in
+   #:add-scope
+   #:add-inscope
+   #:scope-add-to-options))

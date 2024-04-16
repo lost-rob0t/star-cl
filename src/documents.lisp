@@ -1,5 +1,7 @@
 (in-package :starintel)
 
+(defparameter *starintel-doc-version* "0.7.1")
+
 (defun unix-now ()
   (- (local-time:timestamp-to-universal (local-time:now))
      (encode-universal-time 0 0 0 1 1 1970 0)))
@@ -7,10 +9,11 @@
 
 
 (defclass document ()
-  ((id :accessor doc-id :type string :initarg :id :initform "")
+  ((_id :accessor doc-id :type string :initarg :id :initform "")
    (dataset :accessor doc-dataset :type string :initarg :dataset :initform "")
    (dtype :accessor doc-type :type string :initarg :dtype :initform "")
    (sources :accessor doc-sources :type list :initform nil)
+   (version :accessor doc-version :type integer :initform *starintel-doc-version*)
    (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
    (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
 
@@ -46,7 +49,7 @@
   (let* ((full-type (type-of doc))
          (type-parts (uiop:split-string (symbol-name full-type) :separator ":"))
          (type-name (car (last type-parts))))
-    (setf (doc-type doc) (str:title-case type-name))))
+    (setf (doc-type doc) (string-downcase type-name))))
 
 
 (defgeneric set-meta (doc dataset)

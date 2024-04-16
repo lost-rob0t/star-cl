@@ -1,6 +1,5 @@
 (in-package :starintel)
 
-;; TODO Define some common errors for missing fields
 
 ;; WARNING DEVIATION FROM SPEC!!!!!!!
 
