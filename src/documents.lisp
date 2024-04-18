@@ -45,6 +45,7 @@
 (defgeneric set-type (doc)
   (:documentation "Set the type of a Booker document"))
 
+;; TODO is there a better way of doing this?
 (defmethod set-type ((doc document))
   (let* ((full-type (type-of doc))
          (type-parts (uiop:split-string (symbol-name full-type) :separator ":"))
