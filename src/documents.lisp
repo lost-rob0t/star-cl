@@ -1,6 +1,6 @@
 (in-package :starintel)
 
-(defparameter *starintel-doc-version* "0.7.1")
+(defparameter *starintel-doc-version* "0.7.2")
 
 (defun unix-now ()
   (- (local-time:timestamp-to-universal (local-time:now))
