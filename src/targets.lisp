@@ -10,9 +10,6 @@
    (recurring :accessor target-recurring-p :type bool :initform nil :initarg :recurring)
    (options :accessor target-options :type list :initarg :options :initform (cl-json))))
 
-(defmethod make-uuid ((doc target))
-  "Create a UUID for the document"
-  (setf (target-id doc) (uuid:make-v4-uuid)))
 
 (defmethod hash-id ((doc target) &rest data)
   "Set the document id based on the result of a hash input"
