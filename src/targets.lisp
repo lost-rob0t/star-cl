@@ -14,10 +14,11 @@
   "Create a UUID for the document"
   (setf (target-id doc) (uuid:make-v4-uuid)))
 
-(defmethod hash-id ((doc target) data &optional (type :md5))
+(defmethod hash-id ((doc target) &rest data)
+  "Set the document id based on the result of a hash input"
   (setf (target-id doc) (ironclad:byte-array-to-hex-string (ironclad:digest-sequence
-                                                            type
-                                                            (ironclad:ascii-string-to-byte-array data)))))
+                                                            *default-hash-algo*
+                                                            (ironclad:ascii-string-to-byte-array (format nil "~{~a~}" data))))))
 
 
 (defgeneric set-id (target)
