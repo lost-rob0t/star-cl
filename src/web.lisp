@@ -10,6 +10,8 @@
    (domain :accessor email-domain :type string :initarg :domain :initform "")
    (password :accessor email-password :type string :initarg :password :initform "")))
 
+
+
 (defclass email-message (document)
   ((body :accessor email-message-body :type string :initarg :body :initform "")
    (subject :accessor email-message-subject :type string :initarg :subject :initform "")
@@ -27,27 +29,48 @@
    (bio :accessor user-bio :type string :initarg :bio :initform "")))
 
 
-(defun new-email (email)
+(defmethod set-id ((doc email))
+  (hash-id doc
+           (email-user doc)
+           (email-domain doc)
+           (when (> (length (email-password doc)) 0)
+             (email-password doc))))
+
+
+(defmethod set-id ((doc user))
+  (hash-id doc
+           (user-name doc)
+           (user-url doc)
+           (user-platform doc)))
+
+
+
+(defmethod set-id ((doc email-message))
+  (hash-id doc (email-message-body doc)
+           (email-message-to doc)
+           (email-message-from doc)
+           (email-message-subject doc)))
+
+;; TODO make a function that takes user and domain and use that to make new-email*
+(defun new-email (dataset &rest args)
   "Create a New Booker Email"
-  (let* ((email-data (split-string email "@"))
+  (let ((email (apply #'make-instance 'email args)))
+    (set-meta email dataset)
+    email))
+
+(defun new-email* (dataset email &rest args)
+  "Create a New Booker Email"
+  (let* ((email-data (uiop:split-string email :max 2 :separator "@"))
          (user (nth 0 email-data))
          (domain (nth 1 email-data))
-         (email (make-instance 'email :user user :domain domain)))
-    (hash-id email (format nil "~a~a" user domain))
+         (email (apply #'make-instance 'email :user user :domain domain args)))
+    (set-meta email dataset)
     email))
 
-(defun new-email-with-password (user domain password)
-  "Create a New Booker Email with Password"
-  (let ((email (make-instance 'email :user user :domain domain :password password)))
-    (hash-id email (format nil "~a~a~a" user domain password))
-    email))
 
-(defun new-user (username platform &optional url)
+(defun new-user (dataset &rest args)
   "Create a New Booker User"
-  (let ((user (make-instance 'user :name username :platform platform :url (or url "") :dtype "user")))
-    (hash-id user (format nil "~a~a" username (or url "")))
+  (let ((user (apply #'make-instance 'user args)))
+    (set-id user)
+    (set-meta user dataset)
     user))
-
-(defun new-username (username platform &optional url)
-  "Create a New Booker User with Username"
-  (new-user username platform url))

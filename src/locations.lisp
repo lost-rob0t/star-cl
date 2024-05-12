@@ -13,8 +13,32 @@
    (street :accessor address-street :type string :initarg :street :initform (error "Street address is required"))
    (street2 :accessor address-street2 :type string :initarg :street2)))
 
-(defun new-address (street street2 city postal state country &optional lat long)
+(defmethod set-id ((doc geo))
+  (hash-id doc
+           (geo-lat doc)
+           (geo-long doc)
+           (geo-alt doc)))
+
+(defmethod set-id ((doc address))
+  (hash-id doc
+           (address-lat doc)
+           (address-long doc)
+           (address-alt doc)
+           (address-city doc)
+           (address-state doc)
+           (address-postal doc)
+           (address-country doc)
+           (address-street doc)
+           (address-street2 doc)))
+
+(defun new-geo (dataset &rest args)
+  "Create a New Geo"
+  (let ((geo (apply #'make-instance 'geo args)))
+    (set-meta geo dataset)
+    geo))
+
+(defun new-address (dataset &rest args)
   "Create a New Booker Address"
-  (let ((address (make-instance 'address :street street :street2 street2 :city city :postal postal :state state :country country :lat lat :long (or long 0.0))))
-    (hash-id address (format nil "~a~a~a~a~a~a~a" street street2 city postal state country lat))
+  (let ((address (apply #'make-instance 'address args)))
+    (set-meta address dataset)
     address))

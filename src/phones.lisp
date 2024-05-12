@@ -7,8 +7,10 @@
    (phone-type :accessor phone-type :type string :initarg :phone-type :initform "")))
 
 
-(defun new-phone (number carrier status &optional phone-type)
-  "Create a New Booker Phone"
-  (let ((phone (make-instance 'phone :number number :carrier carrier :status status :phone-type (or phone-type "") :dtype "phone")))
-    (hash-id phone number)
+
+
+(defun new-phone (&rest args)
+  "Create a Phone document"
+  (let ((phone (apply #'make-instance 'phone args)))
+    (apply #'hash-id phone args)
     phone))

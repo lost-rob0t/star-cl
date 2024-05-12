@@ -1,12 +1,12 @@
 (in-package :starintel)
 
 (defclass message (document)
-  ((message :accessor message-message :type string :initarg :message :initform "")
+  ((message :accessor message-content :type string :initarg :content :initform "")
    (platform :accessor message-platform :type string :initarg :platform :initform "")
    (user :accessor message-user :type string :initarg :user :initform "")
    (is-reply :accessor message-is-reply :type bool :initarg :is-reply :initform nil)
    (media :accessor message-media :type list :initarg :media :initform '())
-   (message-id :accessor message-message-id :type string :initarg :message-id :initform "")
+   (message-id :accessor message-id :type string :initarg :message-id :initform "")
    (reply-to :accessor message-reply-to :type string :initarg :reply-to :initform "")
    (group :accessor message-group :type string :initarg :group :initform "")
    (channel :accessor message-channel :type string :initarg :channel :initform "")
@@ -26,14 +26,48 @@
    (group :accessor social-media-post-group :type string :initarg :group :initform "")
    (reply-to :accessor social-media-post-reply-to :type string :initarg :reply-to :initform "")))
 
-(defun new-message (message group platform user &optional channel message-id)
+
+(defmethod set-id ((doc message))
+  (hash-id doc
+           (message-content doc)
+           (message-user doc)
+           (message-channel doc)
+           (message-group doc)
+           (message-id doc)
+           (message-platform doc)))
+
+(defmethod set-id ((doc social-media-post))
+  (hash-id doc
+           (social-media-post-content doc)
+           (social-media-post-user doc)
+           (social-media-post-url doc)
+           (social-media-post-group doc)))
+
+
+
+
+
+;; (defun new-message (message group platform user &key (channel nil) (message-id nil))
+;;   "Create a New Booker Message"
+;;   (let ((message (make-instance 'message :message message :platform platform :user user :is-reply nil :media '() :message-id (or message-id "") :reply-to "" :group group :channel (or channel "") :mentions '())))
+;;     (set-meta message)
+;;     message))
+
+;; (defun new-social-media-post (user content title group &key (url nil))
+;;   "Create a New Booker Social Media Post"
+;;   (let ((post (make-instance 'social-media-post :content content :user user :replies '() :media '() :reply-count 0 :repost-count 0 :url (or url "") :links '() :tags '() :title title :group group :reply-to "")))
+;;     (set-meta post)
+;;     post))
+
+
+(defun new-message (dataset &rest args)
   "Create a New Booker Message"
-  (let ((message (make-instance 'message :message message :platform platform :user user :is-reply nil :media '() :message-id (or message-id "") :reply-to "" :group group :channel (or channel "") :mentions '())))
-    (hash-id message (format nil "~a~a~a~a" message group platform user))
+  (let ((message (apply #'make-instance 'message args)))
+    (set-meta message dataset)
     message))
 
-(defun new-social-media-post (user content title group &optional url date)
+(defun new-social-media-post (dataset &rest args)
   "Create a New Booker Social Media Post"
-  (let ((post (make-instance 'social-media-post :content content :user user :replies '() :media '() :reply-count 0 :repost-count 0 :url (or url "") :links '() :tags '() :title title :group group :reply-to "")))
-    (hash-id post (format nil "~a~a~a~a" user content title group))
+  (let ((post (apply #'make-instance 'social-media-post args)))
+    (set-meta post dataset)
     post))

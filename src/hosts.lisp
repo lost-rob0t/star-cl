@@ -27,30 +27,66 @@
   ((url :accessor url-url :type string :initarg :url :initform (error "URL is required"))
    (content :accessor url-content :type string :initarg :content)))
 
-(defun new-domain (domain record-type &optional ip)
-  "Create a New Booker Domain"
-  (let ((domain (make-instance 'domain :record-type record-type :record domain :ip ip)))
-    (hash-id domain (format nil "~a~a~a" domain record-type (or ip "")))
+(defmethod set-id ((doc domain))
+  "Set the ID for a domain document"
+  (hash-id doc (domain-record doc) (domain-record-type doc) (domain-ip doc)))
+
+(defmethod set-id ((doc port))
+  "Set the ID for a port document"
+  (hash-id doc (port-number doc) (port-services doc)))
+
+(defmethod set-id ((doc asn))
+  "Set the ID for an ASN document"
+  (hash-id doc (asn-number doc) (asn-subnet doc)))
+
+(defmethod set-id ((doc network))
+  "Set the ID for a network document"
+  (hash-id doc (network-org doc) (network-asn doc)))
+
+(defmethod set-id ((doc host))
+  "Set the ID for a host document"
+  (hash-id doc (host-hostname doc) (host-ip doc)))
+
+(defmethod set-id ((doc url))
+  "Set the ID for a URL document"
+  (hash-id doc (url-url doc) (url-content doc)))
+
+
+
+
+
+(defun new-domain (dataset &rest args)
+  "Create a New Domain"
+  (let ((domain (apply #'make-instance 'domain args)))
+    (set-meta domain dataset)
     domain))
 
-(defun new-port (number &optional services)
-  "Create a New Booker Port"
-  (make-instance 'port :number number :services (or services '())))
+(defun new-port (dataset &rest args)
+  "Create a New Port"
+  (let ((port (apply #'make-instance 'port args)))
+    (set-meta port dataset)
+    port))
 
-(defun new-asn (number subnet)
-  "Create a New Booker ASN"
-  (make-instance 'asn :number number :subnet subnet))
+(defun new-asn (dataset &rest args)
+  "Create a New ASN"
+  (let ((asn (apply #'make-instance 'asn args)))
+    (set-meta asn dataset)
+    asn))
 
-(defun new-network (asn org)
-  "Create a New Booker Network"
-  (make-instance 'network :asn asn :org org))
+(defun new-network (dataset &rest args)
+  "Create a New Network"
+  (let ((network (apply #'make-instance 'network args)))
+    (set-meta network dataset)
+    network))
 
-(defun new-host (ip &optional hostname)
-  "Create a New Booker Host"
-  (let ((host (make-instance 'host :ip ip :hostname hostname)))
-    (hash-id host (format nil "~a~a" (or hostname "") ip))
+(defun new-host (dataset &rest args)
+  "Create a New Host"
+  (let ((host (apply #'make-instance 'host args)))
+    (set-meta host dataset)
     host))
 
-(defun new-url (url content)
-  "Create a New Booker URL"
-  (make-instance 'url :url url :content content))
+(defun new-url (dataset &rest args)
+  "Create a New URL"
+  (let ((url (apply #'make-instance 'url args)))
+    (set-meta url dataset)
+    url))

@@ -4,7 +4,7 @@
   :license "LGLv3"
   :version "0.7.1"
   :serial t
-  :depends-on (#:jsown #:ironclad #:local-time #:uuid)
+  :depends-on (#:jsown #:ironclad #:local-time #:cms-ulid)
   :components ((:file "package")
                (:file "documents")
                (:file "entities")

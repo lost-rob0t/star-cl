@@ -16,8 +16,7 @@
    (region :initarg person-region :type string :initarg :region :initform "")
    (misc :initarg person-misc :type list :initarg :misc :initform '())
    ;; HACK Fix this, infact i should move the main doc to a metadata field
-   (etype :accessor doc-etype :type string :initarg :etype :initform "")
-
+   (etype :accessor doc-etype :type string :initarg :etype :initform "person")
    (eid :accessor doc-eid :type string :initarg :eid :initform "")))
 
 
@@ -27,14 +26,26 @@
    (bio :accessor org-bio :type string :initarg :bio :initform "")
    (country :accessor org-country :type string :initarg :country :initform "")
    (website :accessor org-website :type string :initarg :website :initform "")
-   (etype :accessor doc-etype :type string :initarg :etype :initform "")
+   (etype :accessor doc-etype :type string :initarg :etype :initform "org")
    (eid :accessor doc-eid :type string :initarg :eid :initform "")))
 
 
+(defmethod set-id ((doc person))
+  "Set the ID for a person document"
+  (ulid-id doc))
 
+(defmethod set-id ((doc org))
+  "Set the ID for an organization document"
+  (hash-id doc (org-name doc) (org-reg doc) (org-country doc)))
 
-(defun new-org (name etype &rest args)
+(defun new-org (dataset name etype &rest args)
   "Create a New Booker Organization"
   (let ((org (apply #'make-instance 'org :name name :etype etype args)))
-    (hash-id org (format nil "~a~a" name etype))
+    (set-meta org dataset)
     org))
+
+(defun new-person (dataset fname lname etype &rest args)
+  "Create a New Booker Person"
+  (let ((person (apply #'make-instance 'person :fname fname :lname lname :etype etype args)))
+    (set-meta person dataset)
+    person))

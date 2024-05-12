@@ -80,7 +80,6 @@
    #:relation-note
    #:new-relation
    #:message
-   #:message-message
    #:message-platform
    #:message-user
    #:message-is-reply
@@ -88,6 +87,7 @@
    #:message-message-id
    #:message-reply-to
    #:message-group
+   #:message-content
    #:message-channel
    #:message-mentions
    #:social-media-post

@@ -6,6 +6,14 @@ Port of starintel-doc to common lisp
 Mostly will be used by hackmode and starintel-gserver.
 
 
+** Install
+Install quicklisp
+Git clone into the common-lisp directory
+#+Name: install
+#+begin_src sh :async :results output replace
+git clone --recurse-submodules https://github.com/lost-rob0t/star-cl.git ~/common-lisp/star-cl
+#+end_src
+
 ** Differences from doc-nim
 
 + Person doesnt inherit from eid

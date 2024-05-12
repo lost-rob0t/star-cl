@@ -5,10 +5,12 @@
    (target :accessor relation-target :type string :initarg :target :initform "")
    (note :accessor relation-note :type string :initarg :note :initform "")))
 
+(defmethod set-id ((doc relation))
+  (ulid-id doc))
 
-(defun new-relation (source target &optional note dataset)
+
+(defun new-relation (dataset source target note)
   "Create a New Booker Relation"
-  (let ((relation (make-instance 'relation :source source :target target :note (or note "") :dataset (or dataset ""))))
-    (make-uuid relation)
-    (time-stamp relation)
+  (let ((relation (apply #'make-instance 'relation :dataset dataset :source source :target target :note note)))
+    (set-meta relation dataset)
     relation))
