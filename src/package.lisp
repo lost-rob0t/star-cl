@@ -9,7 +9,6 @@
    #:doc-id
    #:doc-dataset
    #:doc-updated
-   #:make-uuid
    #:timestamp
    #:update-timetamp
    #:hash-id
