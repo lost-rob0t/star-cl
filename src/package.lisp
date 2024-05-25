@@ -147,4 +147,11 @@
    #:scope-in
    #:add-scope
    #:add-inscope
-   #:scope-add-to-options))
+   #:scope-add-to-options
+   #:make-ulid
+   #:ulid-id
+   #:set-id
+   #:socialmpost
+   #:url
+   #:url-url
+   #:url-content))
