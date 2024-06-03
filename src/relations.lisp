@@ -11,6 +11,6 @@
 
 (defun new-relation (dataset source target note)
   "Create a New Booker Relation"
-  (let ((relation (apply #'make-instance 'relation :dataset dataset :source source :target target :note note)))
+  (let ((relation (make-instance 'relation :dataset dataset :source source :target target :note note)))
     (set-meta relation dataset)
     relation))

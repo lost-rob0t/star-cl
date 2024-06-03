@@ -6,11 +6,11 @@
    (alt :accessor geo-alt :type float64 :initarg :alt :initform 0.0)))
 
 (defclass address (geo)
-  ((city :accessor address-city :type string :initarg :city :initform (error "City is required"))
-   (state :accessor address-state :type string :initarg :state :initform (error "State is required"))
-   (postal :accessor address-postal :type string :initarg :postal :initform (error "Postal code is required"))
-   (country :accessor address-country :type string :initarg :country :initform (error "Country is required"))
-   (street :accessor address-street :type string :initarg :street :initform (error "Street address is required"))
+  ((city :accessor address-city :type string :initarg :city :initform "")
+   (state :accessor address-state :type string :initarg :state :initform "")
+   (postal :accessor address-postal :type string :initarg :postal :initform "")
+   (country :accessor address-country :type string :initarg :country :initform "")
+   (street :accessor address-street :type string :initarg :street :initform "")
    (street2 :accessor address-street2 :type string :initarg :street2)))
 
 (defmethod set-id ((doc geo))

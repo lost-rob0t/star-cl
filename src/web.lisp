@@ -22,9 +22,9 @@
    (bcc :accessor email-message-bcc :type list :initarg :bcc :initform '())))
 
 (defclass user (document)
-  ((url :accessor user-url :type string :initarg :url :initform (error "user requires a url"))
-   (name :accessor user-name :type string :initarg :name :initform (error "user requires a name."))
-   (platform :accessor user-platform :type string :initarg :platform :initform (error "user requires a platform."))
+  ((url :accessor user-url :type string :initarg :url :initform "")
+   (name :accessor user-name :type string :initarg :name :initform "")
+   (platform :accessor user-platform :type string :initarg :platform :initform "")
    (misc :accessor user-misc :type list :initarg :misc :initform '())
    (bio :accessor user-bio :type string :initarg :bio :initform "")))
 

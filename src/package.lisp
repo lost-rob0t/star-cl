@@ -89,7 +89,6 @@
    #:message-content
    #:message-channel
    #:message-mentions
-   #:social-media-post
    #:new-message
    #:new-social-media-post
    #:social-media-post-content

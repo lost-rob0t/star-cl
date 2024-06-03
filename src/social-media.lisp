@@ -12,7 +12,7 @@
    (channel :accessor message-channel :type string :initarg :channel :initform "")
    (mentions :accessor message-mentions :type list :initarg :mentions :initform '())))
 
-(defclass social-media-post (document)
+(defclass socialmpost (document)
   ((content :accessor social-media-post-content :type string :initarg :content :initform "")
    (user :accessor social-media-post-user :type string :initarg :user :initform "")
    (replies :accessor social-media-post-replies :type list :initarg :replies :initform '())
@@ -36,7 +36,7 @@
            (message-id doc)
            (message-platform doc)))
 
-(defmethod set-id ((doc social-media-post))
+(defmethod set-id ((doc socialmpost))
   (hash-id doc
            (social-media-post-content doc)
            (social-media-post-user doc)
@@ -44,20 +44,6 @@
            (social-media-post-group doc)))
 
 
-
-
-
-;; (defun new-message (message group platform user &key (channel nil) (message-id nil))
-;;   "Create a New Booker Message"
-;;   (let ((message (make-instance 'message :message message :platform platform :user user :is-reply nil :media '() :message-id (or message-id "") :reply-to "" :group group :channel (or channel "") :mentions '())))
-;;     (set-meta message)
-;;     message))
-
-;; (defun new-social-media-post (user content title group &key (url nil))
-;;   "Create a New Booker Social Media Post"
-;;   (let ((post (make-instance 'social-media-post :content content :user user :replies '() :media '() :reply-count 0 :repost-count 0 :url (or url "") :links '() :tags '() :title title :group group :reply-to "")))
-;;     (set-meta post)
-;;     post))
 
 
 (defun new-message (dataset &rest args)
@@ -68,6 +54,6 @@
 
 (defun new-social-media-post (dataset &rest args)
   "Create a New Booker Social Media Post"
-  (let ((post (apply #'make-instance 'social-media-post args)))
+  (let ((post (apply #'make-instance 'socialmpost args)))
     (set-meta post dataset)
     post))
