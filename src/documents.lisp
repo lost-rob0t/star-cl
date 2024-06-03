@@ -19,7 +19,6 @@
    (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
 
 
-;; Not really needed but itsfor my own santiy from documents.nim
 
 
 (defgeneric ulid-id (document)
@@ -79,8 +78,6 @@
 
 (defmethod set-meta ((doc document) dataset)
   (setf (doc-dataset doc) dataset)
-  (when (and ()))
-  (timestamp doc)
   (set-type doc)
   (when (or (not (doc-id doc)) (= (length (doc-id doc)) 0))
     (set-id doc)))
