@@ -80,4 +80,5 @@
   (setf (doc-dataset doc) dataset)
   (set-type doc)
   (when (or (not (doc-id doc)) (= (length (doc-id doc)) 0))
-    (set-id doc)))
+    (set-id doc))
+  doc)
