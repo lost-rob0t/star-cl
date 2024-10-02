@@ -153,4 +153,6 @@
    #:user-url
    #:version
    #:web
-   #:web-source))
+   #:web-source
+   #:target-delay
+   #:target-recurring-p))
