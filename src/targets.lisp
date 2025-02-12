@@ -8,7 +8,7 @@
    (options :accessor target-options :type list :initarg :options :initform nil)))
 
 
-
+;; TODO add Scope type
 
 
 

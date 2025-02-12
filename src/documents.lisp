@@ -14,7 +14,7 @@
    (dataset :accessor doc-dataset :type string :initarg :dataset :initform "")
    (dtype :accessor doc-type :type string :initarg :dtype :initform "")
    (sources :accessor doc-sources :type list :initform nil :initarg :sources)
-   (version :accessor doc-version :type integer :initform *starintel-doc-version*)
+   (version :accessor doc-version :type integer :initform +starintel-doc-version+)
    (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
    (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
 
@@ -41,6 +41,7 @@
 
 (defgeneric set-meta (document dataset)
   (:documentation "Set the metadata of the document, including dataset, timestamp, type, and ID if necessary."))
+
 
 
 (defmethod ulid-id ((doc document))

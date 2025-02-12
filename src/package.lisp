@@ -155,4 +155,10 @@
    #:web
    #:web-source
    #:target-delay
-   #:target-recurring-p))
+   #:target-recurring-p
+   #:person-bio
+   #:person-dob
+   #:person-region
+   #:person-misc
+   #:message-id
+   #:+starintel-doc-version+))

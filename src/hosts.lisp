@@ -28,6 +28,7 @@
    (path :accessor url-path :type string :initarg :path :initform "")
    (content :accessor url-content :type string :initarg :content)))
 
+;; HACK Maybe We should also hash the resolved... becuase that allows you to track changes.
 (defmethod set-id ((doc domain))
   "Set the ID for a domain document"
   (hash-id doc (domain-record doc) (domain-record-type doc)))
