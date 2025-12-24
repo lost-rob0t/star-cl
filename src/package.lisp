@@ -4,6 +4,7 @@
   (:import-from :alexandria :flatten)
   (:use :cl)
   (:export
+   #:->
    #:add-inscope
    #:address
    #:address-city
@@ -18,6 +19,7 @@
    #:asn-subnet
    #:breach
    #:breach-description
+   #:create
    #:breach-total
    #:breach-url
    #:doc-added
@@ -30,6 +32,8 @@
    #:document
    #:doc-updated
    #:domain
+   #:domain-record
+   #:domain-record-type
    #:domain-resolved
    #:email
    #:email-domain
@@ -74,11 +78,13 @@
    #:new-asn
    #:new-domain
    #:new-email
+   #:new-email*
    #:new-email-with-password
    #:new-host
    #:new-message
    #:new-network
    #:new-org
+   #:new-person
    #:new-phone
    #:new-port
    #:new-relation
