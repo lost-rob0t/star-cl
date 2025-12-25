@@ -13,7 +13,7 @@
 (defclass network (document)
   ((org :accessor network-org :type string :initarg :org :initform "")
    (subnet :accessor network-asn :type string :initarg :subnet :initform "")
-   (asn :accessor network-asn :type integer :initarg :asn :initform "")))
+   (asn :accessor network-asn :type integer :initarg :asn :initform 0)))
 
 ;; TODO set empty strins
 (defclass host (document)
