@@ -10,13 +10,33 @@
 
 
 (defclass document ()
-  ((_id :accessor doc-id :type string :initarg :id :initform (error ":id is required for document"))
-   (dataset :accessor doc-dataset :type string :initarg :dataset (error ":dataset is required for document"))
-   (dtype :accessor doc-type :type string :initarg :dtype :initform (error ":dtype is required for document"))
-   (sources :accessor doc-sources :type list :initform nil :initarg :sources)
-   (version :accessor doc-version :type integer :initform +starintel-doc-version+)
-   (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
-   (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now))))
+  ((_id :accessor doc-id
+        :type string
+        :initarg :id
+        :initform (error ":id is required for document"))
+   (dataset :accessor doc-dataset
+            :type string
+            :initarg :dataset
+            :initform (error ":dataset is required for document"))
+   (dtype :accessor doc-type
+          :type string
+          :initarg :dtype
+          :initform (error ":dtype is required for document"))
+   (sources :accessor doc-sources
+            :type list
+            :initarg :sources
+            :initform nil)
+   (version :accessor doc-version
+            :type string
+            :initform +starintel-doc-version+)
+   (date-updated :accessor doc-updated
+                 :type integer
+                 :initarg :date-updated
+                 :initform (unix-now))
+   (date-added :accessor doc-added
+               :type integer
+               :initarg :date-added
+               :initform (unix-now))))
 
 
 
