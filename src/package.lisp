@@ -167,4 +167,7 @@
    #:person-region
    #:person-misc
    #:message-id
-   #:+starintel-doc-version+))
+   #:+starintel-doc-version+
+   ;; JSON encoding functions
+   #:encode
+   #:encode-to-stream))
