@@ -28,3 +28,16 @@
    Applies Nim-style key naming."
   (declare (ignore pretty))
   (jsown:to-json (doc->jsown doc)))
+
+(defun decode (json-obj class-name &key (format-fn #'format-key))
+  "Instantiate CLASS-NAME from a JSOWN object, reversing camelCase keys.
+   Automatically converts values and sets only bound slots."
+  (let* ((object (make-instance class-name))
+         (class (class-of object)))
+    (loop for slot in (closer-mop:class-slots class)
+          for slot-name = (closer-mop:slot-definition-name slot)
+          for key = (funcall format-fn (string slot-name))
+          for value = (jsown:val-safe json-obj key)
+          when value
+            do (setf (slot-value object slot-name) value))
+    object))
