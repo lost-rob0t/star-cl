@@ -17,11 +17,10 @@
    (dataset :accessor doc-dataset
             :type string
             :initarg :dataset
-            :initform (error ":dataset is required for document"))
+            :initform "")
    (dtype :accessor doc-type
-          :type string
           :initarg :dtype
-          :initform (error ":dtype is required for document"))
+          :initform nil)
    (sources :accessor doc-sources
             :type list
             :initarg :sources
