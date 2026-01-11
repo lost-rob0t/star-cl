@@ -13,7 +13,7 @@
   ((_id :accessor doc-id
         :type string
         :initarg :id
-        :initform (error ":id is required for document"))
+        :initform (cms-ulid:ulid))
    (dataset :accessor doc-dataset
             :type string
             :initarg :dataset
