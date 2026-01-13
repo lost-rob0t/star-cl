@@ -1,43 +1,54 @@
 (in-package :starintel)
 
+
+
 (defun format-key (key)
-  "Convert symbol name to Nim-style JSON key.
-  Underscore-prefixed names stay lowercase, others become camelCase."
   (if (str:starts-with? "_" key)
       (string-downcase key)
       (str:camel-case key)))
 
-(defun safe-slot-value (obj slot)
-  "Return value of SLOT in OBJ or NIL if unbound."
-  (when (and (slot-exists-p obj slot)
-             (slot-boundp obj slot))
-    (slot-value obj slot)))
 
-(defun doc->jsown (doc &key (format-fn #'format-key))
-  "Convert any STARINTEL document into a JSOWN :obj form,
-   applying Nim-style key formatting."
-  (cons :obj
-        (loop for slot in (mapcar #'closer-mop:slot-definition-name
-                                  (closer-mop:class-slots (class-of doc)))
-              for val = (safe-slot-value doc slot)
-              when val
-                collect (cons (funcall format-fn (string slot)) val))))
+(defun as-json (object &key (format-fn #'format-key))
+  (let ((json-obj (jsown:empty-object)))
+    (loop for slot in (mapcar #'closer-mop:slot-definition-name
+                              (closer-mop:class-slots (class-of object)))
+          for value = (slot-value object slot)
+          do (setf (jsown:val json-obj (funcall format-fn (string slot)))
+                   (typecase value
+                     (string value)
+                     (integer value)
+                     (list (jsown:to-json value))
+                     (t (to-json value)))))
+    json-obj))
 
-(defun encode (doc &key (pretty nil))
-  "Encode any STARINTEL object into JSON using JSOWN.
-   Applies Nim-style key naming."
-  (declare (ignore pretty))
-  (jsown:to-json (doc->jsown doc)))
+(defun camel-case-to-lisp-case (string)
+  (with-output-to-string (s)
+    (loop for char across string
+          for i from 0
+          do (cond
+               ((and (not (zerop i))
+                     (upper-case-p char))
+                (write-char #\- s)
+                (write-char (char-downcase char) s))
+               (t (write-char (char-downcase char) s))))))
 
-(defun decode (json-obj class-name &key (format-fn #'format-key))
-  "Instantiate CLASS-NAME from a JSOWN object, reversing camelCase keys.
-   Automatically converts values and sets only bound slots."
+(defun from-json (json-obj class-name &key (format-fn #'format-key))
   (let* ((object (make-instance class-name))
          (class (class-of object)))
-    (loop for slot in (closer-mop:class-slots class)
-          for slot-name = (closer-mop:slot-definition-name slot)
+    (loop for slot in (sb-mop:class-slots class)
+          for slot-name = (sb-mop:slot-definition-name slot)
+          for slot-type = (sb-mop:slot-definition-type slot)
           for key = (funcall format-fn (string slot-name))
           for value = (jsown:val-safe json-obj key)
           when value
-            do (setf (slot-value object slot-name) value))
+            do (setf (slot-value object slot-name)
+                     (cond
+                       ((eq slot-type 'list) value)
+                       ((eq slot-type 'string) value)
+                       ((eq slot-type 'integer) value)
+                       (t (from-json value (eval slot-type))))))
     object))
+
+
+
+
