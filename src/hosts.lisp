@@ -3,7 +3,7 @@
 (defclass domain (document)
   ((record-type :accessor domain-record-type :type string :initarg :record-type :initform "")
    (record :accessor domain-record :type string :initarg :record :initform "")
-   (resolved-addresses :accessor domain-resolved :type list :initarg :resolved)))
+   (resolved-addresses :accessor domain-resolved :type list :initarg :resolved :initform '())))
 
 (defclass service ()
   ((port :accessor service-port :type integer :initarg :number)

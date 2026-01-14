@@ -170,4 +170,5 @@
    #:+starintel-doc-version+
    ;; JSON encoding functions
    #:encode
-   #:decode))
+   #:decode
+   #:doc-version))

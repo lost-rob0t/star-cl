@@ -42,7 +42,7 @@
 
 (defgeneric ulid-id (document)
   (:documentation "Generate a ULID for the document."))
-
+r
 (defgeneric timestamp (document)
   (:documentation "Set the document's 'date-added' and 'date-updated' fields to the current Unix time."))
 
