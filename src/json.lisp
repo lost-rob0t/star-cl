@@ -17,8 +17,12 @@
                    (typecase value
                      (string value)
                      (integer value)
-                     (list (jsown:to-json value))
-                     (t (to-json value)))))
+                     (list (mapcar (lambda (item)
+                                     (if (typep item 'standard-object)
+                                         (encode item :format-fn format-fn)
+                                         item))
+                                   value))
+                     (t (encode value :format-fn format-fn)))))
     json-obj))
 
 (defun camel-case-to-lisp-case (string)
