@@ -26,6 +26,7 @@
 (defclass url (document)
   ((url :accessor url-uri :type string :initarg :url :initform "")
    (path :accessor url-path :type string :initarg :path :initform "")
+   (query :accessor url-query :type string :initarg :path :initform "")
    (content :accessor url-content :type string :initarg :content)))
 
 ;; HACK Maybe We should also hash the resolved... becuase that allows you to track changes.
