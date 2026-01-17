@@ -19,9 +19,9 @@
 (defclass host (document)
   ((hostname :accessor host-hostname :type string :initarg :hostname :initform "")
    (ip :accessor host-ip :type string :initarg :ip :initform "")
-   (os :accessor host-os :type string :initarg :os)
+   (os :accessor host-os :type string :initarg :os :initform "")
    ;;; Should be list of <service>
-   (ports :accessor host-ports :type list :initarg :ports)))
+   (ports :accessor host-ports :type list :initarg :ports :initform ())))
 
 (defclass url (document)
   ((url :accessor url-uri :type string :initarg :url :initform "")
