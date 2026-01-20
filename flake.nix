@@ -76,6 +76,8 @@
         default = starintel;
         starintel = starintel;
         starintel-test = starintel-test;
+        cms-ulid = cms-ulid;
+
       };
 
       # Add test checks
