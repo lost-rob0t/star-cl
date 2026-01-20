@@ -17,6 +17,7 @@
                    (typecase value
                      (string value)
                      (integer value)
+                     (boolean value)
                      (list (mapcar (lambda (item)
                                      (if (typep item 'standard-object)
                                          (encode item :format-fn format-fn)
