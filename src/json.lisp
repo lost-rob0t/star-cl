@@ -12,18 +12,22 @@
   (let ((json-obj (jsown:empty-object)))
     (loop for slot in (mapcar #'closer-mop:slot-definition-name
                               (closer-mop:class-slots (class-of object)))
-          for value = (slot-value object slot)
-          do (setf (jsown:val json-obj (funcall format-fn (string slot)))
-                   (typecase value
-                     (string value)
-                     (integer value)
-                     (boolean value)
-                     (list (mapcar (lambda (item)
-                                     (if (typep item 'standard-object)
-                                         (encode item :format-fn format-fn)
-                                         item))
-                                   value))
-                     (t (encode value :format-fn format-fn)))))
+          for slot-name = (string slot)
+          for value = (and (slot-boundp object slot) (slot-value object slot))
+          ;; Skip _rev if not bound or nil
+          unless (and (string= slot-name "_REV") (null value))
+            do (when value
+                 (setf (jsown:val json-obj (funcall format-fn slot-name))
+                       (typecase value
+                         (string value)
+                         (integer value)
+                         (boolean value)
+                         (list (mapcar (lambda (item)
+                                         (if (typep item 'standard-object)
+                                             (encode item :format-fn format-fn)
+                                             item))
+                                       value))
+                         (t (encode value :format-fn format-fn))))))
     json-obj))
 
 (defun camel-case-to-lisp-case (string)

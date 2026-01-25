@@ -14,6 +14,10 @@
         :type string
         :initarg :id
         :initform (cms-ulid:ulid))
+   (_rev :accessor doc-rev
+         :type (or null string)
+         :initarg :rev
+         :initform nil)
    (dataset :accessor doc-dataset
             :type string
             :initarg :dataset

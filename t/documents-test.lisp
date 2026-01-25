@@ -81,3 +81,16 @@
     (let ((original-id (doc-id org)))
       (set-meta org "test-dataset")
       (is (equal (doc-id org) original-id)))))
+
+(test encoder-excludes-unset-rev
+  "Test that encoder excludes _rev when not set"
+  (let* ((doc (make-instance 'document))
+         (json (jsown:to-json (encode doc))))
+    (is (not (search "_rev" json)))))
+
+(test encoder-includes-set-rev
+  "Test that encoder includes _rev when set"
+  (let* ((doc (make-instance 'document :rev "1-abc123"))
+         (json (jsown:to-json (encode doc))))
+    (is (search "_rev" json))
+    (is (search "1-abc123" json))))
