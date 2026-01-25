@@ -1,6 +1,6 @@
 (in-package :starintel)
 
-(defparameter +starintel-doc-version+ "0.8.0")
+(defparameter +starintel-doc-version+ "0.8.03")
 (defparameter *default-hash-algo* :md5)
 
 (defun unix-now ()
