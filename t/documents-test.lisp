@@ -94,3 +94,9 @@
          (json (jsown:to-json (encode doc))))
     (is (search "_rev" json))
     (is (search "1-abc123" json))))
+
+(test encoder-excludes-invalid-rev
+  "Test that encoder excludes malformed CouchDB revisions"
+  (let* ((doc (make-instance 'document :rev "bogus"))
+         (json (jsown:to-json (encode doc))))
+    (is (not (search "_rev" json)))))

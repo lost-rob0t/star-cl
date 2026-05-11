@@ -10,77 +10,87 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
-      # Custom CMS-ULID dependency
-      cms-ulid = pkgs.sbcl.buildASDFSystem rec {
-        pname = "cms-ulid";
-        version = "latest";
-        src = pkgs.fetchgit {
-          url = "https://gitlab.com/colinstrickland/cms-ulid.git";
-          rev = "fff84302dee5db42fb90aafd834af3ffbfd6c2bb";
-          hash = "sha256-B5rekME60bWHk47kDepQpOr9drjgXjZBiRpA+Ob1CuU=";
-        };
-        lispLibs = with pkgs.sbclPackages; [ local-time ironclad bit-smasher serapeum ];
-      };
-
-      # Create an SBCL with our custom packages
+      # Build EVERYTHING (cms-ulid, starintel, tests) inside one SBCL override scope.
       sbcl' = pkgs.sbcl.withOverrides (self: super: {
-        inherit cms-ulid;
+        cms-ulid = pkgs.sbcl.buildASDFSystem rec {
+          pname = "cms-ulid";
+          version = "latest";
+          src = pkgs.fetchgit {
+            url = "https://gitlab.com/colinstrickland/cms-ulid.git";
+            rev = "fff84302dee5db42fb90aafd834af3ffbfd6c2bb";
+            hash = "sha256-B5rekME60bWHk47kDepQpOr9drjgXjZBiRpA+Ob1CuU=";
+          };
+
+          lispLibs = [
+            self.local-time
+            self.ironclad
+            self.bit-smasher
+            self.serapeum
+          ];
+
+          dontStrip = true;
+        };
+
+        starintel = pkgs.sbcl.buildASDFSystem rec {
+          pname = "starintel";
+          version = "0.7.2";
+          src = ./.;
+
+          lispLibs = [
+            self.jsown
+            self.ironclad
+            self.local-time
+            self.cms-ulid
+            self.str
+            self.closer-mop
+          ];
+
+          systems = [ "starintel" ];
+
+          # Keep test asd file so tests can be built
+          asdFilesToKeep = [ "src/starintel.asd" "starintel-test.asd" ];
+
+          dontStrip = true;
+        };
+
+        starintel-test = pkgs.sbcl.buildASDFSystem rec {
+          pname = "starintel-test";
+          version = "0.7.2";
+          src = ./.;
+
+          lispLibs = [
+            self.starintel
+            self.fiveam
+          ];
+
+          systems = [ "starintel-test" ];
+
+          dontStrip = true;
+        };
       });
 
-      # Build the main starintel system
-      starintel = sbcl'.buildASDFSystem rec {
-        pname = "starintel";
-        version = "0.7.2";
-        src = ./.;
+      starintel = sbcl'.pkgs.starintel;
+      starintel-test = sbcl'.pkgs.starintel-test;
+      cms-ulid = sbcl'.pkgs.cms-ulid;
 
-        lispLibs = with sbcl'.pkgs; [
-          jsown ironclad local-time cms-ulid str closer-mop
-        ];
-
-        systems = [ "starintel" ];
-
-        # Keep test asd file so tests can be built
-        asdFilesToKeep = [ "src/starintel.asd" "starintel-test.asd" ];
-
-        dontStrip = true;
-      };
-
-      # Build the test system
-      starintel-test = sbcl'.buildASDFSystem {
-        pname = "starintel-test";
-        version = "0.7.2";
-        src = ./.;
-
-        lispLibs = with sbcl'.pkgs; [
-          starintel
-          fiveam
-        ];
-
-        systems = [ "starintel-test" ];
-
-        dontStrip = true;
-      };
-
-      # Create wrapper with all dependencies
-      sbcl-wrapped = sbcl'.withPackages (ps: with ps; [
-        starintel
+      sbcl-wrapped = sbcl'.withPackages (ps: [
+        ps.starintel
       ]);
 
-      # Create wrapper for tests
-      sbcl-test-wrapped = sbcl'.withPackages (ps: with ps; [
-        starintel-test
+      sbcl-test-wrapped = sbcl'.withPackages (ps: [
+        ps.starintel-test
       ]);
-
-    in {
+    in
+    {
       packages.${system} = {
         default = starintel;
         starintel = starintel;
         starintel-test = starintel-test;
         cms-ulid = cms-ulid;
-
+        sbcl-wrapped = sbcl-wrapped;
+        sbcl-test-wrapped = sbcl-test-wrapped;
       };
 
-      # Add test checks
       checks.${system} = {
         starintel-tests = pkgs.stdenv.mkDerivation {
           name = "starintel-tests-check";
@@ -92,7 +102,6 @@
             export HOME=$TMPDIR
             export XDG_CACHE_HOME="$HOME/.cache"
 
-            # Copy source to writable location
             cp -r $src $TMPDIR/source
             chmod -R u+w $TMPDIR/source
             cd $TMPDIR/source
@@ -139,13 +148,14 @@
       };
 
       devShells.${system}.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          sbcl-wrapped pkg-config
+        buildInputs = [
+          sbcl-test-wrapped
+          pkgs.pkg-config
         ];
 
         shellHook = ''
           echo "StarIntel dev environment ready"
-          echo "Use: sbcl to start SBCL with all dependencies"
+          echo "Use: sbcl to start SBCL with runtime and test dependencies"
           echo "Test with: nix flake check"
         '';
       };

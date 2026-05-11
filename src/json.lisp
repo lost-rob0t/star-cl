@@ -106,6 +106,16 @@ Boolean NIL stays NIL (false)."
           value))
     (t value)))
 
+(defun valid-couchdb-revision-p (value)
+  "Return true when VALUE looks like a CouchDB revision string."
+  (and (stringp value)
+       (> (length value) 2)
+       (let ((dash (position #\- value)))
+         (and dash
+              (> dash 0)
+              (< dash (1- (length value)))
+              (every #'digit-char-p (subseq value 0 dash))))))
+
 (defun encode (object &key (format-fn #'format-key))
   (assert (typep object 'standard-object) (object)
           "encode: OBJECT must be a standard-object, got: ~s" object)
@@ -116,10 +126,10 @@ Boolean NIL stays NIL (false)."
           for slot-str  = (string slot-name)
           for key       = (funcall format-fn slot-str)
           do
-             ;; CouchDB: do NOT emit _rev unless it exists
+             ;; CouchDB: only emit _rev when it is present and syntactically valid.
              (if (string= slot-str "_REV")
                  (when (and (slot-boundp object slot-name)
-                            (slot-value object slot-name))
+                            (valid-couchdb-revision-p (slot-value object slot-name)))
                    (setf (jsown:val json-obj key)
                          (encode-value (slot-value object slot-name) slot-type
                                        :format-fn format-fn)))
