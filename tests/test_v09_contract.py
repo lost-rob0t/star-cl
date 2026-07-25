@@ -58,12 +58,12 @@ class CommonLispV09ContractTests(unittest.TestCase):
         self.assertIn('+starintel-doc-version+ "0.9.0"', documents)
         self.assertIn("schema-version", documents)
         self.assertIn("schema-org", documents)
-        self.assertIn("date-added :accessor doc-added\n               :type string", documents)
-        self.assertIn("version :accessor doc-version\n            :type integer", documents)
+        self.assertRegex(documents, r"date-added\s+:accessor doc-added\s+:type string")
+        self.assertRegex(documents, r"version\s+:accessor doc-version\s+:type integer")
 
     def test_schema_org_map_covers_49_types(self) -> None:
         source = (ROOT / "src" / "schema-org.lisp").read_text(encoding="utf-8")
-        mapping = re.findall(r'^\s*\("([a-z0-9-]+)" \. \("[A-Za-z]+"\)\)', source, re.MULTILINE)
+        mapping = re.findall(r'\("([a-z0-9-]+)"\s+\.\s+\("[A-Za-z]+"\)\)', source)
         self.assertEqual(len(mapping), 49)
         self.assertEqual(len(set(mapping)), 49)
 
