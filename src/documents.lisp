@@ -118,7 +118,7 @@
         (ironclad:byte-array-to-hex-string
          (ironclad:digest-sequence
           *default-hash-algo*
-          (ironclad:ascii-string-to-byte-array (format nil "~{~a~^~c~}" data #\Unit-Separator)))))
+          (ironclad:ascii-string-to-byte-array (format nil "~{~a~^|~}" data)))))
   (refresh-schema-org doc)
   (doc-id doc))
 
