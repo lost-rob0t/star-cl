@@ -6,6 +6,7 @@
   :serial t
   :depends-on (#:jsown #:ironclad #:local-time #:cms-ulid #:str)
   :components ((:file "package")
+               (:file "exports-v09")
                (:file "schema-org")
                (:file "documents")
                (:file "entities")
