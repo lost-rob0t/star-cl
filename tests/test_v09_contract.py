@@ -74,6 +74,16 @@ class CommonLispV09ContractTests(unittest.TestCase):
         self.assertIn("encode-source-v09", codec)
         self.assertIn("decode-document-v09", codec)
 
+    def test_required_dtype_fields_are_normalized(self) -> None:
+        codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")
+        self.assertIn("normalize-required-data-v09", codec)
+        self.assertIn('(set-json-default-v09 data "subject"', codec)
+        self.assertIn('(set-json-default-v09 data "object"', codec)
+        self.assertIn('(set-json-default-v09 data "domain"', codec)
+        self.assertIn('(set-json-default-v09 data "address"', codec)
+        self.assertIn('(jsown:val data "to")', codec)
+        self.assertIn('(jsown:val data "headers")', codec)
+
     def test_hashing_is_sha256(self) -> None:
         source = (ROOT / "src" / "documents.lisp").read_text(encoding="utf-8")
         self.assertIn("*default-hash-algo* :sha256", source)
