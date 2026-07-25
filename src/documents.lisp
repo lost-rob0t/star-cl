@@ -1,18 +1,31 @@
 (in-package :starintel)
 
 (defparameter +starintel-doc-version+ "0.9.0")
-(defparameter +legacy-starintel-doc-version+ "0.8.0")
-(defparameter *default-hash-algo* :md5)
+(defparameter *default-hash-algo* :sha256)
+
+(defparameter +document-envelope-slot-names+
+  '(_id _rev dataset dtype schema-version version date-added date-updated
+    title summary description status language tags labels aliases keywords
+    identifiers sources evidence temporal provenance assessment verification
+    handling lineage quality workflow geospatial attachments related-ids notes
+    schema-org data extensions))
+
+(defun document-envelope-slot-p (slot-name)
+  (member slot-name +document-envelope-slot-names+ :test #'eq))
 
 (defun unix-now ()
   (- (local-time:timestamp-to-universal (local-time:now))
      (encode-universal-time 0 0 0 1 1 1970 0)))
 
+(defun utc-now ()
+  (local-time:format-timestring nil (local-time:now)
+                                :format local-time:+iso-8601-format+))
+
 (defclass document ()
   ((_id :accessor doc-id
         :type string
         :initarg :id
-        :initform (cms-ulid:ulid))
+        :initform "")
    (_rev :accessor doc-rev
          :type (or null string)
          :initarg :rev
@@ -20,71 +33,130 @@
    (dataset :accessor doc-dataset
             :type string
             :initarg :dataset
-            :initform "")
+            :initform "star-intel")
    (dtype :accessor doc-type
+          :type string
           :initarg :dtype
-          :initform nil)
-   (sources :accessor doc-sources
-            :type list
-            :initarg :sources
-            :initform nil)
-   ;; This class is the legacy flat 0.8 compatibility model. New code should
-   ;; validate raw JSON through VALIDATE-V090-DOCUMENT.
+          :initform "document")
+   (schema-version :accessor doc-schema-version
+                   :type string
+                   :initarg :schema-version
+                   :initform +starintel-doc-version+)
    (version :accessor doc-version
-            :type string
-            :initform +legacy-starintel-doc-version+)
-   (date-updated :accessor doc-updated
-                 :type integer
-                 :initarg :date-updated
-                 :initform (unix-now))
+            :type integer
+            :initarg :version
+            :initform 1)
    (date-added :accessor doc-added
-               :type integer
+               :type string
                :initarg :date-added
-               :initform (unix-now))))
+               :initform (utc-now))
+   (date-updated :accessor doc-updated
+                 :type string
+                 :initarg :date-updated
+                 :initform (utc-now))
+   (title :accessor doc-title :type string :initarg :title :initform "")
+   (summary :accessor doc-summary :type string :initarg :summary :initform "")
+   (description :accessor doc-description :type string :initarg :description :initform "")
+   (status :accessor doc-status :type string :initarg :status :initform "recorded")
+   (language :accessor doc-language :type string :initarg :language :initform "en")
+   (tags :accessor doc-tags :type list :initarg :tags :initform nil)
+   (labels :accessor doc-labels :type list :initarg :labels :initform nil)
+   (aliases :accessor doc-aliases :type list :initarg :aliases :initform nil)
+   (keywords :accessor doc-keywords :type list :initarg :keywords :initform nil)
+   (identifiers :accessor doc-identifiers :type list :initarg :identifiers :initform nil)
+   (sources :accessor doc-sources :type list :initarg :sources :initform nil)
+   (evidence :accessor doc-evidence :type list :initarg :evidence :initform nil)
+   (temporal :accessor doc-temporal :type t :initarg :temporal :initform (jsown:empty-object))
+   (provenance :accessor doc-provenance :type t :initarg :provenance :initform (jsown:empty-object))
+   (assessment :accessor doc-assessment :type t :initarg :assessment :initform (jsown:empty-object))
+   (verification :accessor doc-verification :type t :initarg :verification :initform (jsown:empty-object))
+   (handling :accessor doc-handling :type t :initarg :handling :initform (jsown:empty-object))
+   (lineage :accessor doc-lineage :type t :initarg :lineage :initform (jsown:empty-object))
+   (quality :accessor doc-quality :type t :initarg :quality :initform (jsown:empty-object))
+   (workflow :accessor doc-workflow :type t :initarg :workflow :initform (jsown:empty-object))
+   (geospatial :accessor doc-geospatial :type t :initarg :geospatial :initform (jsown:empty-object))
+   (attachments :accessor doc-attachments :type list :initarg :attachments :initform nil)
+   (related-ids :accessor doc-related-ids :type list :initarg :related-ids :initform nil)
+   (notes :accessor doc-notes :type list :initarg :notes :initform nil)
+   (schema-org :accessor doc-schema-org :type t :initarg :schema-org :initform nil)
+   (data :accessor doc-data :type t :initarg :data :initform (jsown:empty-object))
+   (extensions :accessor doc-extensions :type t :initarg :extensions :initform (jsown:empty-object))))
 
-(defgeneric ulid-id (document)
-  (:documentation "Generate a ULID for the document."))
-(defgeneric timestamp (document)
-  (:documentation "Set the document's date-added and date-updated fields to the current Unix time."))
-(defgeneric update-timetamp (document)
-  (:documentation "Update the document's date-updated field to the current Unix time."))
-(defgeneric hash-id (document &rest data)
-  (:documentation "Generate a hash-based ID for the document."))
-(defgeneric set-id (document)
-  (:documentation "Set the document ID if it is not already set."))
-(defgeneric set-type (document)
-  (:documentation "Set the legacy document type based on its class name."))
-(defgeneric set-meta (document dataset)
-  (:documentation "Set legacy flat document metadata."))
+(defgeneric ulid-id (document))
+(defgeneric timestamp (document))
+(defgeneric update-timetamp (document))
+(defgeneric update-timestamp (document))
+(defgeneric hash-id (document &rest data))
+(defgeneric set-id (document))
+(defgeneric set-type (document))
+(defgeneric set-meta (document dataset))
+(defgeneric refresh-schema-org (document))
+(defgeneric touch (document &key updated-by))
 
 (defmethod ulid-id ((doc document))
-  (setf (doc-id doc) (cms-ulid:ulid)))
+  (setf (doc-id doc) (cms-ulid:ulid))
+  (refresh-schema-org doc)
+  (doc-id doc))
 
 (defmethod timestamp ((doc document))
-  (when (not (doc-added doc))
-    (setf (doc-added doc) (unix-now)))
-  (when (not (doc-updated doc))
-    (setf (doc-updated doc) (unix-now))))
+  (let ((now (utc-now)))
+    (when (or (null (doc-added doc)) (string= (doc-added doc) ""))
+      (setf (doc-added doc) now))
+    (when (or (null (doc-updated doc)) (string= (doc-updated doc) ""))
+      (setf (doc-updated doc) now)))
+  doc)
+
+(defmethod update-timestamp ((doc document))
+  (setf (doc-updated doc) (utc-now))
+  doc)
 
 (defmethod update-timetamp ((doc document))
-  (setf (doc-updated doc) (unix-now)))
+  (update-timestamp doc))
 
 (defmethod hash-id ((doc document) &rest data)
   (setf (doc-id doc)
         (ironclad:byte-array-to-hex-string
          (ironclad:digest-sequence
           *default-hash-algo*
-          (ironclad:ascii-string-to-byte-array (format nil "~{~a~}" data))))))
+          (ironclad:ascii-string-to-byte-array (format nil "~{~a~^~c~}" data #\Unit-Separator)))))
+  (refresh-schema-org doc)
+  (doc-id doc))
+
+(defmethod set-id ((doc document))
+  (when (or (null (doc-id doc)) (string= (doc-id doc) ""))
+    (ulid-id doc))
+  (doc-id doc))
 
 (defmethod set-type ((doc document))
-  (let* ((full-type (type-of doc))
-         (type-parts (uiop:split-string (symbol-name full-type) :separator ":"))
-         (type-name (car (last type-parts))))
-    (setf (doc-type doc) (string-downcase type-name))))
+  (setf (doc-type doc)
+        (canonical-dtype (string-downcase (symbol-name (class-name (class-of doc))))))
+  (doc-type doc))
+
+(defmethod refresh-schema-org ((doc document))
+  (setf (doc-schema-org doc)
+        (schema-org-metadata (doc-type doc) (doc-id doc) (doc-schema-org doc)))
+  (doc-schema-org doc))
 
 (defmethod set-meta ((doc document) dataset)
-  (setf (doc-dataset doc) dataset)
+  (setf (doc-dataset doc) dataset
+        (doc-schema-version doc) +starintel-doc-version+)
   (set-type doc)
-  (when (or (not (doc-id doc)) (= (length (doc-id doc)) 0))
-    (set-id doc))
+  (set-id doc)
+  (timestamp doc)
+  (refresh-schema-org doc)
   doc)
+
+(defmethod touch ((doc document) &key (updated-by ""))
+  (incf (doc-version doc))
+  (update-timestamp doc)
+  (when (> (length updated-by) 0)
+    (setf (jsown:val (doc-provenance doc) "updated_by") updated-by))
+  (refresh-schema-org doc)
+  doc)
+
+(defmethod initialize-instance :after ((doc document) &key)
+  (setf (doc-schema-version doc) +starintel-doc-version+)
+  (set-type doc)
+  (set-id doc)
+  (timestamp doc)
+  (refresh-schema-org doc))
