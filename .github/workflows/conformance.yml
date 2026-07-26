@@ -61,6 +61,11 @@ jobs:
             --consumer cl \
             --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp" \
             2>&1 | tee "$GITHUB_WORKSPACE/artifacts/cl-matrix.log"
+          status=${PIPESTATUS[0]}
+          if [ -f artifacts/conformance-report.json ]; then
+            cp artifacts/conformance-report.json "$GITHUB_WORKSPACE/artifacts/cl-conformance-report.json"
+          fi
+          exit "$status"
 
       - name: Upload Common Lisp diagnostics
         if: always()
