@@ -33,22 +33,22 @@
 
 (test relation-ids-are-unique
   "Test that relations get unique IDs (ULIDs)"
-  (let ((rel1 (make-instance 'relation
-                             :source "source-id"
-                             :target "target-id"))
-        (rel2 (make-instance 'relation
-                             :source "source-id"
-                             :target "target-id")))
-    (set-id rel1)
-    (set-id rel2)
-    (is (not (equal (doc-id rel1) (doc-id rel2))))))
+  (let ((relation-1 (make-instance 'relation
+                                   :source "source-id"
+                                   :target "target-id"))
+        (relation-2 (make-instance 'relation
+                                   :source "source-id"
+                                   :target "target-id")))
+    (set-id relation-1)
+    (set-id relation-2)
+    (is (not (equal (doc-id relation-1) (doc-id relation-2))))))
 
 (test new-relation-function
   "Test new-relation convenience function"
   (let ((relation (new-relation "test-dataset"
                                 "source-id"
                                 "target-id"
-                                "test note")))
+                                :note "test note")))
     (is (typep relation 'relation))
     (is (equal (relation-source relation) "source-id"))
     (is (equal (relation-target relation) "target-id"))
