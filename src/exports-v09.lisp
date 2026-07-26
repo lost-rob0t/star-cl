@@ -42,6 +42,8 @@
           refresh-schema-org
           touch
           update-timestamp
+          define-docs
+          read-star-file
           codec-validation-error
           codec-validation-operation
           codec-validation-path
