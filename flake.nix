@@ -46,7 +46,7 @@
             self.closer-mop
           ];
 
-          systems = [ "starintel" "starintel-v090" ];
+          systems = [ "starintel" ];
           asdFilesToKeep = [ "src/starintel.asd" "starintel-v090.asd" "starintel-test.asd" ];
           dontStrip = true;
         };
