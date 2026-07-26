@@ -7,4 +7,4 @@
   'integer)
 
 (deftype float64 ()
-  'double-float)
+  'float)
