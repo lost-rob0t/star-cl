@@ -1,0 +1,2 @@
+(defpackage :starintel
+  (:use :cl))
