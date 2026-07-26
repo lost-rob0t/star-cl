@@ -105,18 +105,24 @@
             ${sbcl-test-wrapped}/bin/sbcl --non-interactive --no-userinit --no-sysinit \
               --eval "(require :asdf)" \
               --eval "(push (truename \".\") asdf:*central-registry*)" \
-              --eval "(asdf:load-system :starintel-test)" \
               --eval "(handler-case
                         (progn
+                          (asdf:load-system :starintel-test)
                           (asdf:test-system :starintel-test)
                           (uiop:quit 0))
-                        (error (e)
-                          (format t \"~%Test error: ~a~%\" e)
+                        (error (condition)
+                          (format *error-output* \"~&StarIntel tests failed: ~a~%\" condition)
                           (uiop:quit 1)))" \
               2>&1 | tee $TMPDIR/test-output.log
 
             TEST_EXIT_CODE=''${PIPESTATUS[0]}
-            if [ $TEST_EXIT_CODE -ne 0 ]; then
+
+            if [ $TEST_EXIT_CODE -eq 0 ]; then
+              echo ""
+              echo "Test check passed"
+            else
+              echo ""
+              echo "Test check failed with exit code $TEST_EXIT_CODE"
               exit $TEST_EXIT_CODE
             fi
           '';
