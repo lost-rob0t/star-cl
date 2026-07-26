@@ -74,6 +74,7 @@
    #:network
    #:network-asn
    #:network-org
+   #:network-subnet
    #:new-address
    #:new-asn
    #:new-domain
@@ -149,6 +150,7 @@
    #:url
    #:url-content
    #:url-path
+   #:url-query
    #:url-uri
    #:url-url
    #:user
@@ -168,7 +170,6 @@
    #:person-misc
    #:message-id
    #:+starintel-doc-version+
-   ;; JSON encoding functions
    #:encode
    #:decode
    #:doc-version))
