@@ -42,6 +42,22 @@
           refresh-schema-org
           touch
           update-timestamp
+          define-docs
+          read-star-file
+          codec-validation-error
+          codec-validation-operation
+          codec-validation-path
+          codec-validation-expected-type
+          codec-validation-value
+          codec-validation-reason
+          unknown-document-dtype
+          document-class-mismatch
+          encode-value
+          decode-value
           encode-document-v09
-          decode-document-v09)
+          decode-document-v09
+          decode-document
+          register-document-class
+          registered-document-class
+          registered-document-dtypes)
         (find-package :starintel))

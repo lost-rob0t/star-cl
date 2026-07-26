@@ -1,24 +1,20 @@
 (in-package :starintel)
 
-
 ;; WARNING DEVIATION FROM SPEC!!!!!!!
 
 ;; (defclass entity (document)
 ;;   ())
 
-
-
 (defclass person (document)
   ((fname :accessor person-fname :type string :initarg :fname :initform "")
    (mname :accessor person-mname :type string :initarg :mname :initform "")
    (lname :accessor person-lname :type string :initarg :lname :initform "")
-   (bio :initarg person-bio :type string :initarg :bio :initform "")
-   (dob :initarg person-dob :type string :initarg :dob :initform "")
-   (region :initarg person-region :type string :initarg :region :initform "")
-   (misc :initarg person-misc :type list :initarg :misc :initform '())
+   (bio :accessor person-bio :type string :initarg :bio :initform "")
+   (dob :accessor person-dob :type string :initarg :dob :initform "")
+   (region :accessor person-region :type string :initarg :region :initform "")
+   (misc :accessor person-misc :type list :initarg :misc :initform nil)
    (etype :accessor doc-etype :type string :initarg :etype :initform "person")
    (eid :accessor doc-eid :type string :initarg :eid :initform "")))
-
 
 (defclass org (document)
   ((reg :accessor org-reg :type string :initarg :reg :initform "")
@@ -29,14 +25,17 @@
    (etype :accessor doc-etype :type string :initarg :etype :initform "org")
    (eid :accessor doc-eid :type string :initarg :eid :initform "")))
 
-
 (defmethod set-id ((doc person))
-  "Set the ID for a person document"
-  (ulid-id doc))
+  "Set the ID for a person document when no ID exists."
+  (when (document-id-missing-p doc)
+    (ulid-id doc))
+  (doc-id doc))
 
 (defmethod set-id ((doc org))
-  "Set the ID for an organization document"
-  (hash-id doc (org-name doc) (org-reg doc) (org-country doc)))
+  "Set the deterministic ID for an organization when no ID exists."
+  (when (document-id-missing-p doc)
+    (hash-id doc (org-name doc) (org-reg doc) (org-country doc)))
+  (doc-id doc))
 
 (defun new-org (dataset name etype &rest args)
   "Create a New Booker Organization"
