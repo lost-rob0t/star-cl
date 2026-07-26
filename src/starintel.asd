@@ -18,5 +18,6 @@
                (:file "social-media")
                (:file "manifest")
                (:file "locations")
+               (:file "define")
                (:file "json")
                (:file "json-v09")))
