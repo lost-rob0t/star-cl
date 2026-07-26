@@ -10,9 +10,9 @@
 (let* ((script (or *load-truename* *compile-file-truename*))
        (root (uiop:pathname-parent-directory-pathname
               (uiop:pathname-parent-directory-pathname script))))
-  (asdf:load-asd (merge-pathnames "src/starintel.asd" root)))
+  (asdf:load-asd (merge-pathnames "starintel-v090.asd" root)))
 
-(asdf:load-system :starintel)
+(asdf:load-system :starintel-v090)
 
 (in-package :cl-user)
 
