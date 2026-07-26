@@ -1,8 +1,8 @@
 (asdf:defsystem :starintel-test
-  :description "Test suite for Star Intel"
+  :description "Test suite for StarIntel"
   :author "nsaspy"
   :license "LGLv3"
-  :version "0.7.2"
+  :version "0.9.0"
   :depends-on (#:starintel #:fiveam)
   :serial t
   :components ((:module "t"
@@ -14,6 +14,8 @@
                  (:file "web-test")
                  (:file "relations-test")
                  (:file "json-test")
-                 (:file "define-test"))))
+                 (:file "define-test")
+                 (:file "v090-test"))))
   :perform (test-op (o c)
+                    (declare (ignore o c))
                     (symbol-call :fiveam '#:run! :starintel-test)))
