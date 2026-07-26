@@ -3,68 +3,44 @@
 (defclass actor-manifest ()
   ((_id :initarg :id :initform nil :accessor doc-id)
    (_rev :initarg :rev :initform nil :accessor doc-rev)
-   (type :initarg :type :initform "actor-manifest" :accessor doc-rev)
+   (type :initarg :type :initform "actor-manifest" :accessor doc-type)
    (actor :initarg :actor :initform nil :accessor actor-name)
-   (conumer-path :initarg :consumers :initform nil :accessor actor-consumers)
-   (target-options :initarg :target-options :initform list :accessor target-options)
+   (consumer-path :initarg :consumers :initform nil :accessor actor-consumers)
+   (target-options :initarg :target-options :initform nil :accessor target-options)
    (date-updated :accessor doc-updated :type integer :initarg :date-updated :initform (unix-now))
    (date-added :accessor doc-added :type integer :initarg :date-added :initform (unix-now)))
-  
-  (:documentation "Actor manifest object which advetises acto services."))
+  (:documentation "Actor manifest describing actor services."))
 
-(defgeneric ulid-id (actor-manifest)
-  (:documentation "Generate a ULID for the actor-manifest."))
+(defmethod set-id ((document actor-manifest))
+  "Set the deterministic actor-manifest ID when missing."
+  (when (or (null (doc-id document))
+            (and (stringp (doc-id document))
+                 (string= (doc-id document) "")))
+    (setf (doc-id document)
+          (ironclad:byte-array-to-hex-string
+           (ironclad:digest-sequence
+            *default-hash-algo*
+            (ironclad:ascii-string-to-byte-array
+             (format nil "~a" (actor-name document)))))))
+  (doc-id document))
 
-(defgeneric timestamp (actor-manifest)
-  (:documentation "Set the actor-manifest's 'date-added' and 'date-updated' fields to the current Unix time."))
+(defmethod timestamp ((document actor-manifest))
+  (unless (doc-added document)
+    (setf (doc-added document) (unix-now)))
+  (unless (doc-updated document)
+    (setf (doc-updated document) (unix-now)))
+  document)
 
-(defgeneric update-timetamp (actor-manifest)
-  (:documentation "Update the actor-manifest's 'date-updated' field to the current Unix time."))
+(defmethod update-timetamp ((document actor-manifest))
+  (setf (doc-updated document) (unix-now))
+  document)
 
-(defgeneric hash-id (actor-manifest &rest data)
-  (:documentation "Generate a hash-based ID for the actor-manifest."))
+(defmethod set-type ((document actor-manifest))
+  (setf (doc-type document) "actor-manifest"))
 
-(defgeneric set-id (actor-manifest)
-  (:documentation "Set the actor-manifest ID if it's not already set."))
-
-(defgeneric set-type (actor-manifest)
-  (:documentation "Set the actor-manifest type based on its class name."))
-
-(defgeneric set-meta (actor-manifest dataset)
-  (:documentation "Set the metadata of the actor-manifest, including dataset, timestamp, type, and ID if necessary."))
-
-
-(defmethod set-id ((doc actor-manifest))
-  "Set the ID for a domain actor-manifest"
-  (setf (doc-id doc) (ironclad:byte-array-to-hex-string (ironclad:digest-sequence
-                                                         *default-hash-algo*
-                                                         (ironclad:ascii-string-to-byte-array (format nil "~{~a~}" (actor-name doc)))))))
-
-
-(defmethod timestamp ((doc actor-manifest))
-  "Add the current time in unix to the actor-manifest"
-  (when (not (doc-added doc))
-    (setf (doc-added doc) (unix-now)))
-  (when (not (doc-updated doc))
-    (setf (doc-updated doc) (unix-now))))
-
-(defmethod update-timetamp ((doc actor-manifest))
-  "Update the doc_updated field to the current unix epoch time."
-  (setf (doc-updated doc) (unix-now)))
-
-(defmethod set-type ((doc actor-manifest))
-  (let* ((full-type (type-of doc))
-         (type-parts (uiop:split-string (symbol-name full-type) :separator ":"))
-         (type-name (car (last type-parts))))
-    (setf (doc-type doc) (string-downcase type-name))))
-
-
-
-
-
-(defmethod set-meta ((doc actor-manifest) dataset)
-  (setf (doc-dataset doc) dataset)
-  (set-type doc)
-  (when (or (not (doc-id doc)) (= (length (doc-id doc)) 0))
-    (set-id doc))
-  doc)
+(defmethod set-meta ((document actor-manifest) dataset)
+  (declare (ignore dataset))
+  (set-type document)
+  (set-id document)
+  (timestamp document)
+  document)
