@@ -2,18 +2,22 @@
 
 (require :asdf)
 
-(let ((quicklisp (merge-pathnames "quicklisp/setup.lisp"
-                                  (user-homedir-pathname))))
-  (when (probe-file quicklisp)
-    (load quicklisp)))
+(let ((*standard-output* *error-output*)
+      (*trace-output* *error-output*)
+      (*compile-verbose* nil)
+      (*load-verbose* nil))
+  (let ((quicklisp (merge-pathnames "quicklisp/setup.lisp"
+                                    (user-homedir-pathname))))
+    (when (probe-file quicklisp)
+      (load quicklisp)))
 
-(let* ((script (or *load-truename* *compile-file-truename*))
-       (bin-directory (uiop:pathname-directory-pathname script))
-       (root (uiop:pathname-parent-directory-pathname bin-directory))
-       (asd (merge-pathnames "starintel-v090.asd" root)))
-  (asdf:load-asd (truename asd)))
+  (let* ((script (or *load-truename* *compile-file-truename*))
+         (bin-directory (uiop:pathname-directory-pathname script))
+         (root (uiop:pathname-parent-directory-pathname bin-directory))
+         (asd (merge-pathnames "starintel-v090.asd" root)))
+    (asdf:load-asd (truename asd)))
 
-(asdf:load-system :starintel-v090)
+  (asdf:load-system :starintel-v090))
 
 (in-package :cl-user)
 
