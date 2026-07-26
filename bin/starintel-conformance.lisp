@@ -8,9 +8,10 @@
     (load quicklisp)))
 
 (let* ((script (or *load-truename* *compile-file-truename*))
-       (root (uiop:pathname-parent-directory-pathname
-              (uiop:pathname-parent-directory-pathname script))))
-  (asdf:load-asd (merge-pathnames "starintel-v090.asd" root)))
+       (bin-directory (uiop:pathname-directory-pathname script))
+       (root (uiop:pathname-parent-directory-pathname bin-directory))
+       (asd (merge-pathnames "starintel-v090.asd" root)))
+  (asdf:load-asd (truename asd)))
 
 (asdf:load-system :starintel-v090)
 
