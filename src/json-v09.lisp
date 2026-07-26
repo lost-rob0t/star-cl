@@ -47,7 +47,7 @@
          (let ((object (jsown:empty-object)))
            (when (> (length headers) 0)
              (setf (jsown:val object "raw") headers))
-           (setf (jsown:val data "headers") object)))))
+           (setf (jsown:val data "headers") object))))))
   data)
 
 (defun encode-standard-object-v09 (object &key (format-fn #'format-key))
