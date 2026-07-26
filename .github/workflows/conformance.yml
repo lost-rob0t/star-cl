@@ -1,0 +1,77 @@
+name: StarIntel conformance
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  common-lisp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Checkout pinned conformance source
+        uses: actions/checkout@v6
+        with:
+          repository: lost-rob0t/starintel-gpt-auto-dig
+          ref: 9f96fcf1852c65e100441c86c8a1c72843e760b8
+          path: conformance-source
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Run existing Common Lisp suite
+        env:
+          STARINTEL_CONFORMANCE_ROOT: ${{ github.workspace }}/conformance-source
+        run: |
+          mkdir -p artifacts
+          set -o pipefail
+          nix flake check -L 2>&1 | tee artifacts/nix-check.log
+
+      - name: Install standalone v0.9 runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes sbcl curl
+          curl --fail --silent --show-error --location https://beta.quicklisp.org/quicklisp.lisp --output /tmp/quicklisp.lisp
+          sbcl --non-interactive \
+            --load /tmp/quicklisp.lisp \
+            --eval '(quicklisp-quickstart:install :path (merge-pathnames "quicklisp/" (user-homedir-pathname)))' \
+            --eval '(quit)'
+          cat >/tmp/install-starintel-v090-deps.lisp <<'LISP'
+          (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
+          (ql:quickload '(:com.inuoe.jzon :cl-ppcre) :silent t)
+          (quit)
+          LISP
+          sbcl --script /tmp/install-starintel-v090-deps.lisp
+
+      - name: Run Common Lisp fixture suite
+        working-directory: conformance-source
+        run: |
+          set +e
+          set -o pipefail
+          python -m conformance.runner test \
+            --producer cl \
+            --consumer cl \
+            --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp" \
+            2>&1 | tee "$GITHUB_WORKSPACE/artifacts/cl-matrix.log"
+          status=${PIPESTATUS[0]}
+          if [ -f artifacts/conformance-report.json ]; then
+            cp artifacts/conformance-report.json "$GITHUB_WORKSPACE/artifacts/cl-conformance-report.json"
+          fi
+          exit "$status"
+
+      - name: Upload Common Lisp diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-lisp-conformance-diagnostics
+          path: artifacts/
+          if-no-files-found: warn
