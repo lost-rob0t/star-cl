@@ -1,8 +1,8 @@
 (asdf:defsystem :starintel-test
-  :description "Test suite for Star Intel"
+  :description "Required test suite for StarIntel v0.9"
   :author "nsaspy"
-  :license "LGLv3"
-  :version "0.7.2"
+  :license "GPL-3.0-or-later"
+  :version "0.9.0"
   :depends-on (#:starintel #:fiveam)
   :serial t
   :components ((:module "t"
@@ -15,5 +15,7 @@
                  (:file "relations-test")
                  (:file "json-test")
                  (:file "define-test"))))
-  :perform (test-op (o c)
-                    (symbol-call :fiveam '#:run! :starintel-test)))
+  :perform (test-op (operation component)
+             (declare (ignore operation component))
+             (unless (uiop:symbol-call :starintel-test :run-tests)
+               (error "StarIntel required tests failed."))))
