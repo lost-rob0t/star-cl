@@ -42,7 +42,7 @@
     :initarg :child)
    (counts
     :accessor codec-parent-counts
-    :type (list integer)
+    :type list
     :initarg :counts
     :initform nil)))
 
