@@ -4,10 +4,11 @@
   :license "GPL-3.0-or-later"
   :version "0.9.0"
   :serial t
-  :depends-on (#:jsown #:ironclad #:local-time #:cms-ulid #:str)
+  :depends-on (#:jsown #:ironclad #:local-time #:cms-ulid #:str #:closer-mop)
   :components ((:file "package")
                (:file "exports-v09")
                (:file "schema-org")
+               (:file "types")
                (:file "documents")
                (:file "entities")
                (:file "hosts")
