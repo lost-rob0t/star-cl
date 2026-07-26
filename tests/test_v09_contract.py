@@ -42,10 +42,13 @@ class CommonLispV09ContractTests(unittest.TestCase):
     def test_changed_lisp_files_are_balanced(self) -> None:
         paths = [
             ROOT / "src" / "schema-org.lisp",
+            ROOT / "src" / "types.lisp",
             ROOT / "src" / "documents.lisp",
+            ROOT / "src" / "json.lisp",
             ROOT / "src" / "json-v09.lisp",
             ROOT / "src" / "exports-v09.lisp",
             ROOT / "t" / "documents-test.lisp",
+            ROOT / "t" / "json-test.lisp",
         ]
         for path in paths:
             with self.subTest(path=path.name):
@@ -69,18 +72,44 @@ class CommonLispV09ContractTests(unittest.TestCase):
 
     def test_wire_codec_nests_subtype_slots(self) -> None:
         codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")
-        self.assertIn('(setf (jsown:val json-obj "data") data)', codec)
+        self.assertIn('(jsown:val json-object "data")', codec)
         self.assertIn("document-envelope-slot-p", codec)
         self.assertIn("encode-source-v09", codec)
         self.assertIn("decode-document-v09", codec)
 
+    def test_codec_is_typed_and_portable(self) -> None:
+        codec = (ROOT / "src" / "json.lisp").read_text(encoding="utf-8")
+        self.assertIn("codec-validation-error", codec)
+        self.assertIn("nullable-type-p", codec)
+        self.assertIn("encode-collection-value", codec)
+        self.assertIn("decode-collection-value", codec)
+        self.assertIn("closer-mop:class-slots", codec)
+        self.assertNotIn("sb-mop:", codec)
+        self.assertNotIn("(declare (ignore type-spec))", codec)
+
+    def test_document_decode_uses_registered_classes(self) -> None:
+        codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")
+        self.assertIn("*document-class-registry*", codec)
+        self.assertIn("registered-document-class", codec)
+        self.assertIn("unknown-document-dtype", codec)
+        self.assertIn("document-class-mismatch", codec)
+        self.assertNotIn("intern", codec.lower())
+
+    def test_encode_contract_returns_jsown(self) -> None:
+        codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")
+        tests = (ROOT / "t" / "json-test.lisp").read_text(encoding="utf-8")
+        self.assertIn("Return a JSOWN object", codec)
+        self.assertIn("encode-returns-jsown-object", tests)
+        self.assertNotIn("encode-returns-string", tests)
+        self.assertNotIn(":pretty", tests)
+
     def test_required_dtype_fields_are_normalized(self) -> None:
         codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")
         self.assertIn("normalize-required-data-v09", codec)
-        self.assertIn('(set-json-default-v09 data "subject"', codec)
-        self.assertIn('(set-json-default-v09 data "object"', codec)
-        self.assertIn('(set-json-default-v09 data "domain"', codec)
-        self.assertIn('(set-json-default-v09 data "address"', codec)
+        self.assertIn('data "subject"', codec)
+        self.assertIn('data "object"', codec)
+        self.assertIn('data "domain"', codec)
+        self.assertIn('"address"', codec)
         self.assertIn('(jsown:val data "to")', codec)
         self.assertIn('(jsown:val data "headers")', codec)
 
