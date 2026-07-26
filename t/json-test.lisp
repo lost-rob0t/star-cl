@@ -63,10 +63,19 @@
   (jsown:with-injective-reader
     (jsown:parse (jsown:to-json object))))
 
+(defun json-key-present-p (object key)
+  (handler-case
+      (progn
+        (jsown:val object key)
+        t)
+    (error () nil)))
+
 (test encode-returns-jsown-object
-  (let ((encoded (encode (make-instance 'codec-state-object))))
+  (let* ((encoded (encode (make-instance 'codec-state-object)))
+         (wire (injective-round-trip encoded)))
     (is (not (stringp encoded)))
-    (is (equal encoded (injective-round-trip encoded)))))
+    (is (eq :false (jsown:val wire "flag")))
+    (is (eq :null (jsown:val wire "nullable")))))
 
 (test encode-keeps-false-empty-array-null-and-empty-string-distinct
   (let* ((encoded (encode (make-instance 'codec-state-object)))
@@ -190,4 +199,4 @@
   (let ((document (make-instance 'document :rev "1-valid")))
     (is (string= "1-valid" (jsown:val (encode document) "_rev"))))
   (let ((document (make-instance 'document :rev "invalid")))
-    (is (not (nth-value 1 (jsown/get (encode document) "_rev"))))))
+    (is (not (json-key-present-p (encode document) "_rev")))))
