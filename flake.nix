@@ -1,5 +1,5 @@
 {
-  description = "Star-cl: Document Spec for handling osint data";
+  description = "Star-cl: StarIntel v0.9.0 document implementation";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -10,7 +10,6 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
-      # Build EVERYTHING (cms-ulid, starintel, tests) inside one SBCL override scope.
       sbcl' = pkgs.sbcl.withOverrides (self: super: {
         cms-ulid = pkgs.sbcl.buildASDFSystem rec {
           pname = "cms-ulid";
@@ -33,11 +32,13 @@
 
         starintel = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel";
-          version = "0.7.2";
+          version = "0.9.0";
           src = ./.;
 
           lispLibs = [
             self.jsown
+            self.jzon
+            self.cl-ppcre
             self.ironclad
             self.local-time
             self.cms-ulid
@@ -45,17 +46,14 @@
             self.closer-mop
           ];
 
-          systems = [ "starintel" ];
-
-          # Keep test asd file so tests can be built
-          asdFilesToKeep = [ "src/starintel.asd" "starintel-test.asd" ];
-
+          systems = [ "starintel" "starintel-v090" ];
+          asdFilesToKeep = [ "src/starintel.asd" "starintel-v090.asd" "starintel-test.asd" ];
           dontStrip = true;
         };
 
         starintel-test = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel-test";
-          version = "0.7.2";
+          version = "0.9.0";
           src = ./.;
 
           lispLibs = [
@@ -64,7 +62,6 @@
           ];
 
           systems = [ "starintel-test" ];
-
           dontStrip = true;
         };
       });
@@ -95,7 +92,6 @@
         starintel-tests = pkgs.stdenv.mkDerivation {
           name = "starintel-tests-check";
           src = ./.;
-
           nativeBuildInputs = [ sbcl-test-wrapped ];
 
           buildPhase = ''
@@ -106,11 +102,6 @@
             chmod -R u+w $TMPDIR/source
             cd $TMPDIR/source
 
-            echo "=========================================="
-            echo "  Running StarIntel Tests"
-            echo "=========================================="
-            echo ""
-
             ${sbcl-test-wrapped}/bin/sbcl --non-interactive --no-userinit --no-sysinit \
               --eval "(require :asdf)" \
               --eval "(push (truename \".\") asdf:*central-registry*)" \
@@ -120,21 +111,12 @@
                           (asdf:test-system :starintel-test)
                           (uiop:quit 0))
                         (error (e)
-                          (format t \"~%~%========================================~%\")
-                          (format t \"  Test Error~%\")
-                          (format t \"========================================~%\")
-                          (format t \"~%Error: ~a~%~%\" e)
+                          (format t \"~%Test error: ~a~%\" e)
                           (uiop:quit 1)))" \
               2>&1 | tee $TMPDIR/test-output.log
 
             TEST_EXIT_CODE=''${PIPESTATUS[0]}
-
-            if [ $TEST_EXIT_CODE -eq 0 ]; then
-              echo ""
-              echo "✓ Test check passed"
-            else
-              echo ""
-              echo "✗ Test check failed with exit code $TEST_EXIT_CODE"
+            if [ $TEST_EXIT_CODE -ne 0 ]; then
               exit $TEST_EXIT_CODE
             fi
           '';
@@ -142,7 +124,6 @@
           installPhase = ''
             mkdir -p $out
             cp $TMPDIR/test-output.log $out/test-results.log
-            echo "Test results saved to $out/test-results.log"
           '';
         };
       };
@@ -154,8 +135,7 @@
         ];
 
         shellHook = ''
-          echo "StarIntel dev environment ready"
-          echo "Use: sbcl to start SBCL with runtime and test dependencies"
+          echo "StarIntel v0.9.0 development environment ready"
           echo "Test with: nix flake check"
         '';
       };
