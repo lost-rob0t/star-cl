@@ -1,0 +1,63 @@
+name: StarIntel conformance
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  common-lisp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Checkout pinned conformance source
+        uses: actions/checkout@v6
+        with:
+          repository: lost-rob0t/starintel-gpt-auto-dig
+          ref: agent/starintel-v090-conformance
+          path: conformance-source
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install SBCL and Quicklisp
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes sbcl curl
+          curl --fail --silent --show-error --location https://beta.quicklisp.org/quicklisp.lisp --output /tmp/quicklisp.lisp
+          sbcl --non-interactive \
+            --load /tmp/quicklisp.lisp \
+            --eval '(quicklisp-quickstart:install :path (merge-pathnames "quicklisp/" (user-homedir-pathname)))' \
+            --eval '(quit)'
+          cat >/tmp/install-starintel-deps.lisp <<'LISP'
+          (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
+          (ql:quickload '(:jsown :com.inuoe.jzon :ironclad :local-time :cms-ulid :str :cl-ppcre :fiveam) :silent t)
+          (quit)
+          LISP
+          sbcl --script /tmp/install-starintel-deps.lisp
+
+      - name: Run Common Lisp tests
+        env:
+          STARINTEL_CONFORMANCE_ROOT: ${{ github.workspace }}/conformance-source
+        run: |
+          cat >/tmp/test-starintel.lisp <<'LISP'
+          (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
+          (asdf:load-asd (truename "src/starintel.asd"))
+          (asdf:load-asd (truename "starintel-test.asd"))
+          (asdf:test-system :starintel-test)
+          (quit)
+          LISP
+          sbcl --script /tmp/test-starintel.lisp
+
+      - name: Run Common Lisp fixture suite
+        working-directory: conformance-source
+        run: |
+          python -m conformance.runner test \
+            --producer cl \
+            --consumer cl \
+            --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp"
