@@ -2,6 +2,11 @@
 
 (require :asdf)
 
+(let ((quicklisp (merge-pathnames "quicklisp/setup.lisp"
+                                  (user-homedir-pathname))))
+  (when (probe-file quicklisp)
+    (load quicklisp)))
+
 (let* ((script (or *load-truename* *compile-file-truename*))
        (root (uiop:pathname-parent-directory-pathname
               (uiop:pathname-parent-directory-pathname script))))
