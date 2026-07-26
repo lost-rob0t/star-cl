@@ -55,6 +55,7 @@ jobs:
       - name: Run Common Lisp fixture suite
         working-directory: conformance-source
         run: |
+          set +e
           set -o pipefail
           python -m conformance.runner test \
             --producer cl \
