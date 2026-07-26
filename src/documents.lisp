@@ -93,6 +93,11 @@
 (defgeneric refresh-schema-org (document))
 (defgeneric touch (document &key updated-by))
 
+(defun document-id-missing-p (document)
+  (let ((id (doc-id document)))
+    (or (null id)
+        (and (stringp id) (string= id "")))))
+
 (defmethod ulid-id ((doc document))
   (setf (doc-id doc) (cms-ulid:ulid))
   (refresh-schema-org doc)
@@ -123,7 +128,7 @@
   (doc-id doc))
 
 (defmethod set-id ((doc document))
-  (when (or (null (doc-id doc)) (string= (doc-id doc) ""))
+  (when (document-id-missing-p doc)
     (ulid-id doc))
   (doc-id doc))
 
