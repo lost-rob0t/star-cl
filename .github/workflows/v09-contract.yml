@@ -35,4 +35,17 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
       - name: Run required ASDF codec tests
-        run: nix flake check --print-build-logs --no-write-lock-file
+        shell: bash
+        run: |
+          set +e
+          nix flake check --print-build-logs --no-write-lock-file > /tmp/common-lisp-contract.log 2>&1
+          status=$?
+          tail -n 300 /tmp/common-lisp-contract.log > /tmp/common-lisp-contract-tail.log
+          cat /tmp/common-lisp-contract-tail.log
+          exit "$status"
+      - name: Upload Common Lisp diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-lisp-contract-tail
+          path: /tmp/common-lisp-contract-tail.log
