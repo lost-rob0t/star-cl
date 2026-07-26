@@ -33,7 +33,7 @@
 
         starintel = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel";
-          version = "0.7.2";
+          version = "0.9.0";
           src = ./.;
 
           lispLibs = [
@@ -55,7 +55,7 @@
 
         starintel-test = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel-test";
-          version = "0.7.2";
+          version = "0.9.0";
           src = ./.;
 
           lispLibs = [
@@ -114,16 +114,13 @@
             ${sbcl-test-wrapped}/bin/sbcl --non-interactive --no-userinit --no-sysinit \
               --eval "(require :asdf)" \
               --eval "(push (truename \".\") asdf:*central-registry*)" \
-              --eval "(asdf:load-system :starintel-test)" \
               --eval "(handler-case
                         (progn
+                          (asdf:load-system :starintel-test)
                           (asdf:test-system :starintel-test)
                           (uiop:quit 0))
-                        (error (e)
-                          (format t \"~%~%========================================~%\")
-                          (format t \"  Test Error~%\")
-                          (format t \"========================================~%\")
-                          (format t \"~%Error: ~a~%~%\" e)
+                        (error (condition)
+                          (format *error-output* \"~&StarIntel tests failed: ~a~%\" condition)
                           (uiop:quit 1)))" \
               2>&1 | tee $TMPDIR/test-output.log
 
@@ -131,10 +128,10 @@
 
             if [ $TEST_EXIT_CODE -eq 0 ]; then
               echo ""
-              echo "✓ Test check passed"
+              echo "Test check passed"
             else
               echo ""
-              echo "✗ Test check failed with exit code $TEST_EXIT_CODE"
+              echo "Test check failed with exit code $TEST_EXIT_CODE"
               exit $TEST_EXIT_CODE
             fi
           '';
