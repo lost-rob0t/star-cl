@@ -19,5 +19,6 @@
                (:file "manifest")
                (:file "locations")
                (:file "v090")
+               (:file "define")
                (:file "json")
                (:file "json-v09")))
