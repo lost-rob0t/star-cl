@@ -25,7 +25,15 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install SBCL and Quicklisp
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Run existing Common Lisp suite
+        env:
+          STARINTEL_CONFORMANCE_ROOT: ${{ github.workspace }}/conformance-source
+        run: nix flake check -L
+
+      - name: Install standalone v0.9 runtime dependencies
         run: |
           sudo apt-get update
           sudo apt-get install --yes sbcl curl
@@ -34,25 +42,12 @@ jobs:
             --load /tmp/quicklisp.lisp \
             --eval '(quicklisp-quickstart:install :path (merge-pathnames "quicklisp/" (user-homedir-pathname)))' \
             --eval '(quit)'
-          cat >/tmp/install-starintel-deps.lisp <<'LISP'
+          cat >/tmp/install-starintel-v090-deps.lisp <<'LISP'
           (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
-          (ql:quickload '(:jsown :com.inuoe.jzon :ironclad :local-time :cms-ulid :str :cl-ppcre :fiveam) :silent t)
+          (ql:quickload '(:com.inuoe.jzon :cl-ppcre) :silent t)
           (quit)
           LISP
-          sbcl --script /tmp/install-starintel-deps.lisp
-
-      - name: Run Common Lisp tests
-        env:
-          STARINTEL_CONFORMANCE_ROOT: ${{ github.workspace }}/conformance-source
-        run: |
-          cat >/tmp/test-starintel.lisp <<'LISP'
-          (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
-          (asdf:load-asd (truename "src/starintel.asd"))
-          (asdf:load-asd (truename "starintel-test.asd"))
-          (asdf:test-system :starintel-test)
-          (quit)
-          LISP
-          sbcl --script /tmp/test-starintel.lisp
+          sbcl --script /tmp/install-starintel-v090-deps.lisp
 
       - name: Run Common Lisp fixture suite
         working-directory: conformance-source
