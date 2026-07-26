@@ -55,10 +55,12 @@ jobs:
       - name: Run Common Lisp fixture suite
         working-directory: conformance-source
         run: |
+          set -o pipefail
           python -m conformance.runner test \
             --producer cl \
             --consumer cl \
-            --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp"
+            --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp" \
+            2>&1 | tee "$GITHUB_WORKSPACE/artifacts/cl-matrix.log"
 
       - name: Upload Common Lisp diagnostics
         if: always()
