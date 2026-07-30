@@ -1,7 +1,7 @@
 (asdf:defsystem :starintel-test
   :description "Test suite for StarIntel"
   :author "nsaspy"
-  :license "LGLv3"
+  :license "AGPL-3.0-only"
   :version "0.9.0"
   :depends-on (#:starintel #:fiveam)
   :serial t
