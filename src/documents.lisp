@@ -127,6 +127,18 @@
   (refresh-schema-org doc)
   (doc-id doc))
 
+(defun digest-id (&rest data)
+  "Return a deterministic SHA-256 hex digest string from DATA items.
+
+Items are joined with a pipe separator before hashing, matching the
+sePARATOR used by HASH-ID.  Unlike HASH-ID, this is a pure function
+that does not require a document instance."
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence
+    *default-hash-algo*
+    (ironclad:ascii-string-to-byte-array
+     (format nil "~{~a~^|~}" data)))))
+
 (defmethod set-id ((doc document))
   (when (document-id-missing-p doc)
     (ulid-id doc))

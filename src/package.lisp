@@ -52,6 +52,7 @@
    #:geo-lat
    #:geo-long
    #:hash-id
+   #:digest-id
    #:host
    #:host-hostname
    #:host-ip
@@ -114,6 +115,9 @@
    #:relation-note
    #:relation-source
    #:relation-target
+   #:relation-subject
+   #:relation-object
+   #:relation-predicate
    #:scope
    #:scope-add-to-options
    #:scope-description

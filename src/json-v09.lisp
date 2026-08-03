@@ -32,7 +32,11 @@
      (set-json-default-v09
       data "subject" (json-value-v09 data "source" ""))
      (set-json-default-v09
-      data "object" (json-value-v09 data "target" "")))
+      data "object" (json-value-v09 data "target" ""))
+     (set-json-default-v09
+      data "source" (json-value-v09 data "subject" ""))
+     (set-json-default-v09
+      data "target" (json-value-v09 data "object" "")))
     ((string= dtype "domain")
      (set-json-default-v09
       data "domain" (json-value-v09 data "record" "")))

@@ -59,5 +59,8 @@
           decode-document
           register-document-class
           registered-document-class
-          registered-document-dtypes)
+          registered-document-dtypes
+          digest-id
+          relation-subject
+          relation-object)
         (find-package :starintel))
