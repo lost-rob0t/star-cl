@@ -11,25 +11,29 @@
    (postal :accessor address-postal :type string :initarg :postal :initform "")
    (country :accessor address-country :type string :initarg :country :initform "")
    (street :accessor address-street :type string :initarg :street :initform "")
-   (street2 :accessor address-street2 :type string :initarg :street2)))
+   (street2 :accessor address-street2 :type string :initarg :street2 :initform "")))
 
-(defmethod set-id ((doc geo))
-  (hash-id doc
-           (geo-lat doc)
-           (geo-long doc)
-           (geo-alt doc)))
+(defmethod set-id ((document geo))
+  (when (document-id-missing-p document)
+    (hash-id document
+             (geo-lat document)
+             (geo-long document)
+             (geo-alt document)))
+  (doc-id document))
 
-(defmethod set-id ((doc address))
-  (hash-id doc
-           (address-lat doc)
-           (address-long doc)
-           (address-alt doc)
-           (address-city doc)
-           (address-state doc)
-           (address-postal doc)
-           (address-country doc)
-           (address-street doc)
-           (address-street2 doc)))
+(defmethod set-id ((document address))
+  (when (document-id-missing-p document)
+    (hash-id document
+             (geo-lat document)
+             (geo-long document)
+             (geo-alt document)
+             (address-city document)
+             (address-state document)
+             (address-postal document)
+             (address-country document)
+             (address-street document)
+             (address-street2 document)))
+  (doc-id document))
 
 (defun new-geo (dataset &rest args)
   "Create a New Geo"

@@ -52,6 +52,7 @@
    #:geo-lat
    #:geo-long
    #:hash-id
+   #:digest-id
    #:host
    #:host-hostname
    #:host-ip
@@ -74,6 +75,7 @@
    #:network
    #:network-asn
    #:network-org
+   #:network-subnet
    #:new-address
    #:new-asn
    #:new-domain
@@ -113,6 +115,9 @@
    #:relation-note
    #:relation-source
    #:relation-target
+   #:relation-subject
+   #:relation-object
+   #:relation-predicate
    #:scope
    #:scope-add-to-options
    #:scope-description
@@ -149,6 +154,7 @@
    #:url
    #:url-content
    #:url-path
+   #:url-query
    #:url-uri
    #:url-url
    #:user
@@ -168,7 +174,6 @@
    #:person-misc
    #:message-id
    #:+starintel-doc-version+
-   ;; JSON encoding functions
    #:encode
    #:decode
    #:doc-version))

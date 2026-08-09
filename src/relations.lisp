@@ -188,19 +188,54 @@
 (defclass relation (document)
   ((source :accessor relation-source :type string :initarg :source :initform "")
    (target :accessor relation-target :type string :initarg :target :initform "")
+   (subject :accessor relation-subject :type string :initarg :subject :initform "")
+   (object :accessor relation-object :type string :initarg :object :initform "")
    (predicate :accessor relation-predicate :type string :initarg :predicate :initform +relation/related-to+)
    (note :accessor relation-note :type string :initarg :note :initform "")))
+
+(defmethod initialize-instance :after ((doc relation) &rest initargs
+                                       &key source target subject object
+                                       &allow-other-keys)
+  "Synchronize legacy source/target with canonical subject/object.
+
+When subject/object are absent, they inherit from source/target.
+When source/target are absent, they inherit from subject/object.
+This keeps both shapes in sync for callers using either API."
+  (declare (ignore initargs))
+  (let ((subj (relation-subject doc))
+        (obj  (relation-object doc))
+        (src  (relation-source doc))
+        (tgt  (relation-target doc)))
+    (when (and (or (null subj) (string= subj ""))
+               (or src (and source (string/= source ""))))
+      (setf (relation-subject doc) (or source src "")))
+    (when (and (or (null obj) (string= obj ""))
+               (or tgt (and target (string/= target ""))))
+      (setf (relation-object doc) (or target tgt "")))
+    (when (and (or (null src) (string= src ""))
+               (or subj (and subject (string/= subject ""))))
+      (setf (relation-source doc) (or subject subj "")))
+    (when (and (or (null tgt) (string= tgt ""))
+               (or obj (and object (string/= object ""))))
+      (setf (relation-target doc) (or object obj "")))))
 
 (defmethod set-id ((doc relation))
   (ulid-id doc))
 
-(defun new-relation (dataset source target &key note (predicate +relation/related-to+))
-  "Create a new StarIntel Relation (directed, labeled edge)."
+(defun new-relation (dataset source target &key note (predicate +relation/related-to+)
+                    subject object)
+  "Create a new StarIntel Relation (directed, labeled edge).
+
+SOURCE and TARGET are legacy aliases for SUBJECT and OBJECT.  When
+SUBJECT/OBJECT are supplied explicitly they take precedence; the
+legacy slots are kept in sync for backward compatibility."
   (relation/assert-predicate predicate)
   (let ((relation (make-instance 'relation
                                  :dataset dataset
                                  :source source
                                  :target target
+                                 :subject (or subject source "")
+                                 :object (or object target "")
                                  :predicate predicate
                                  :note (or note ""))))
     (set-meta relation dataset)

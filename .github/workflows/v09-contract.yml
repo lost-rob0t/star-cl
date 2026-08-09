@@ -1,0 +1,51 @@
+name: v0.9 contract
+
+on:
+  push:
+    branches:
+      - master
+      - "agent/**"
+  pull_request:
+    branches:
+      - master
+      - "agent/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -p 'test_v09_contract.py' -v
+      - run: git diff --check
+
+  common-lisp-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v25
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Run required ASDF codec tests
+        shell: bash
+        run: |
+          set +e
+          nix flake check --print-build-logs --no-write-lock-file > /tmp/common-lisp-contract.log 2>&1
+          status=$?
+          tail -n 300 /tmp/common-lisp-contract.log > /tmp/common-lisp-contract-tail.log
+          cat /tmp/common-lisp-contract-tail.log
+          exit "$status"
+      - name: Upload Common Lisp diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: common-lisp-contract-tail
+          path: /tmp/common-lisp-contract-tail.log

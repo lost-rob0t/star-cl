@@ -1,11 +1,14 @@
 (asdf:defsystem :starintel
-  :description "StarIntel v0.9.0 document parser, validator, and serializer"
+  :description "Canonical Common Lisp runtime for StarIntel document schema v0.9.0"
   :author "nsaspy"
-  :license "LGLv3"
+  :license "GPL-3.0-or-later"
   :version "0.9.0"
   :serial t
-  :depends-on (#:jsown #:com.inuoe.jzon #:ironclad #:local-time #:cms-ulid #:str #:cl-ppcre)
+  :depends-on (#:jsown #:com.inuoe.jzon #:ironclad #:local-time #:cms-ulid #:str #:cl-ppcre #:closer-mop)
   :components ((:file "package")
+               (:file "exports-v09")
+               (:file "schema-org")
+               (:file "types")
                (:file "documents")
                (:file "entities")
                (:file "hosts")
@@ -16,4 +19,6 @@
                (:file "manifest")
                (:file "locations")
                (:file "v090")
-               (:file "json")))
+               (:file "define")
+               (:file "json")
+               (:file "json-v09")))

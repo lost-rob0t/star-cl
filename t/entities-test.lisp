@@ -51,15 +51,15 @@
     (is (stringp (doc-id person)))
     (is (> (length (doc-id person)) 0))))
 
-(test org-set-id-uses-hash
-  "Test that org set-id uses hash-based ID"
+(test org-set-id-uses-sha256
+  "Test that org set-id uses a SHA-256 ID"
   (let ((org (make-instance 'org
                             :name "ACME Corp"
                             :reg "12345"
                             :country "US")))
     (set-id org)
     (is (stringp (doc-id org)))
-    (is (= (length (doc-id org)) 32)))) ; MD5 hash
+    (is (= (length (doc-id org)) 64))))
 
 (test org-hash-id-deterministic
   "Test that org IDs are deterministic based on name, reg, country"

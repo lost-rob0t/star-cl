@@ -12,39 +12,51 @@
 
 (defclass network (document)
   ((org :accessor network-org :type string :initarg :org :initform "")
-   (subnet :accessor network-asn :type string :initarg :subnet :initform "")
+   (subnet :accessor network-subnet :type string :initarg :subnet :initform "")
    (asn :accessor network-asn :type integer :initarg :asn :initform 0)))
 
-;; TODO set empty strins
 (defclass host (document)
   ((hostname :accessor host-hostname :type string :initarg :hostname :initform "")
    (ip :accessor host-ip :type string :initarg :ip :initform "")
    (os :accessor host-os :type string :initarg :os :initform "")
-   ;;; Should be list of <service>
-   (ports :accessor host-ports :type list :initarg :ports :initform ())))
+   (ports :accessor host-ports :type list :initarg :ports :initform nil)))
 
 (defclass url (document)
   ((url :accessor url-uri :type string :initarg :url :initform "")
    (path :accessor url-path :type string :initarg :path :initform "")
-   (query :accessor url-query :type string :initarg :path :initform "")
+   (query :accessor url-query :type string :initarg :query :initform "")
    (content :accessor url-content :type string :initarg :content :initform "")))
 
-;; HACK Maybe We should also hash the resolved... becuase that allows you to track changes.
+(defun url-url (document)
+  "Compatibility accessor for older callers."
+  (url-uri document))
+
+(defun (setf url-url) (value document)
+  (setf (url-uri document) value))
+
 (defmethod set-id ((doc domain))
-  "Set the ID for a domain document"
-  (hash-id doc (domain-record doc) (domain-record-type doc)))
+  "Set the deterministic domain ID when no ID exists."
+  (when (document-id-missing-p doc)
+    (hash-id doc (domain-record doc) (domain-record-type doc)))
+  (doc-id doc))
 
 (defmethod set-id ((doc network))
-  "Set the ID for a network document"
-  (hash-id doc (network-asn doc) (network-org doc)))
+  "Set the deterministic network ID when no ID exists."
+  (when (document-id-missing-p doc)
+    (hash-id doc (network-asn doc) (network-org doc)))
+  (doc-id doc))
 
 (defmethod set-id ((doc host))
-  "Set the ID for a host document"
-  (hash-id doc (host-ip doc)))
+  "Set the deterministic host ID when no ID exists."
+  (when (document-id-missing-p doc)
+    (hash-id doc (host-ip doc)))
+  (doc-id doc))
 
 (defmethod set-id ((doc url))
-  "Set the ID for a URL document"
-  (hash-id doc (url-url doc) (url-content doc)))
+  "Set the deterministic URL ID when no ID exists."
+  (when (document-id-missing-p doc)
+    (hash-id doc (url-uri doc) (url-content doc)))
+  (doc-id doc))
 
 (defun new-domain (dataset &rest args)
   "Create a New Domain"
