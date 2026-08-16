@@ -85,10 +85,11 @@
     (is (equal (doc-id host1) (digest-id "hostname" "pending.example")))
     (is (not (equal (doc-id host1) (doc-id other))))))
 
-(test host-without-ip-or-hostname-is-invalid
-  "An empty host cannot mint a canonical document ID"
-  (signals error
-    (set-id (make-instance 'host :hostname "" :ip ""))))
+(test host-without-ip-or-hostname-does-not-mint-id
+  "A transient empty host stays unidentifiable instead of hashing empty input"
+  (let ((host (make-instance 'host :hostname "" :ip "")))
+    (set-id host)
+    (is (document-id-missing-p host))))
 
 (test new-unresolved-host-function
   "new-host can now create a hostname-only canonical document"
