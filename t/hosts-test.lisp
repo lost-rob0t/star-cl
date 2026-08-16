@@ -97,6 +97,18 @@
     (is (equal (doc-type host) "host"))
     (is (equal (doc-id host) (digest-id "hostname" "pending.example")))))
 
+(test unresolved-host-v09-round-trip-preserves-identity
+  "Hostname-only host identity survives canonical JSON encode/decode"
+  (let* ((host (new-host "test-dataset"
+                         :hostname "Pending.Example."
+                         :ip ""))
+         (expected-id (doc-id host))
+         (decoded (decode-document (encode host))))
+    (is (typep decoded 'host))
+    (is (equal expected-id (doc-id decoded)))
+    (is (equal "Pending.Example." (host-hostname decoded)))
+    (is (equal "" (host-ip decoded)))))
+
 (test url-creation
   "Test URL entity creation"
   (let ((url-object (make-instance 'url
