@@ -34,6 +34,16 @@
 (defun (setf url-url) (value document)
   (setf (url-uri document) value))
 
+(defun canonical-hostname-for-id (hostname)
+  "Return HOSTNAME normalized for unresolved-host identity.
+
+Host identity is case-insensitive and ignores a DNS trailing dot. The stored
+hostname itself is not rewritten by this function."
+  (string-right-trim
+   '(#\.)
+   (string-downcase
+    (string-trim '(#\Space #\Tab #\Newline #\Return) (or hostname "")))))
+
 (defmethod set-id ((doc domain))
   "Set the deterministic domain ID when no ID exists."
   (when (document-id-missing-p doc)
@@ -47,9 +57,23 @@
   (doc-id doc))
 
 (defmethod set-id ((doc host))
-  "Set the deterministic host ID when no ID exists."
+  "Set deterministic host ID while preserving resolved-host compatibility.
+
+A non-empty IP keeps the historical IP-only identity exactly. If IP is empty,
+fall back to a tagged, normalized hostname identity. A host with neither value
+is not a valid canonical document and is rejected instead of collapsing onto
+the digest of an empty string."
   (when (document-id-missing-p doc)
-    (hash-id doc (host-ip doc)))
+    (let* ((ip (host-ip doc))
+           (hostname (canonical-hostname-for-id (host-hostname doc))))
+      (cond
+        ((plusp (length (string-trim '(#\Space #\Tab #\Newline #\Return) ip)))
+         ;; Deliberately hash the original IP string to preserve existing IDs.
+         (hash-id doc ip))
+        ((plusp (length hostname))
+         (hash-id doc "hostname" hostname))
+        (t
+         (error "Host requires a non-empty IP address or hostname for identity.")))))
   (doc-id doc))
 
 (defmethod set-id ((doc url))
