@@ -89,7 +89,9 @@
   "A transient empty host stays unidentifiable instead of hashing empty input"
   (let ((host (make-instance 'host :hostname "" :ip "")))
     (set-id host)
-    (is (document-id-missing-p host))))
+    (is (or (null (doc-id host))
+            (and (stringp (doc-id host))
+                 (string= "" (doc-id host)))))))
 
 (test new-unresolved-host-function
   "new-host can now create a hostname-only canonical document"
