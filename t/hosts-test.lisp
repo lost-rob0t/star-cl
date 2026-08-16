@@ -57,19 +57,60 @@
     (is (equal (host-ip host) "192.168.1.1"))))
 
 (test host-set-id-uses-sha256
-  "Test that host set-id uses a SHA-256 hash of the IP address"
+  "Test that resolved host set-id preserves the historical IP-only hash"
   (let ((host (make-instance 'host :ip "192.168.1.1")))
     (set-id host)
     (is (stringp (doc-id host)))
-    (is (= (length (doc-id host)) 64))))
+    (is (= (length (doc-id host)) 64))
+    (is (equal (doc-id host) (digest-id "192.168.1.1")))))
 
 (test host-same-ip-same-id
-  "Test that hosts with same IP get same ID"
+  "Test that resolved hosts with same IP retain the same historical ID"
   (let ((host1 (make-instance 'host :ip "192.168.1.1" :hostname "host1"))
         (host2 (make-instance 'host :ip "192.168.1.1" :hostname "host2")))
     (set-id host1)
     (set-id host2)
-    (is (equal (doc-id host1) (doc-id host2)))))
+    (is (equal (doc-id host1) (doc-id host2)))
+    (is (equal (doc-id host1) (digest-id "192.168.1.1")))))
+
+(test unresolved-hostname-has-deterministic-distinct-id
+  "Hostname-only hosts use tagged case-insensitive DNS identity"
+  (let ((host1 (make-instance 'host :hostname "Pending.Example." :ip ""))
+        (host2 (make-instance 'host :hostname "pending.example" :ip ""))
+        (other (make-instance 'host :hostname "other.example" :ip "")))
+    (set-id host1)
+    (set-id host2)
+    (set-id other)
+    (is (equal (doc-id host1) (doc-id host2)))
+    (is (equal (doc-id host1) (digest-id "hostname" "pending.example")))
+    (is (not (equal (doc-id host1) (doc-id other))))))
+
+(test host-without-ip-or-hostname-does-not-mint-id
+  "A transient empty host stays unidentifiable instead of hashing empty input"
+  (let ((host (make-instance 'host :hostname "" :ip "")))
+    (set-id host)
+    (is (or (null (doc-id host))
+            (and (stringp (doc-id host))
+                 (string= "" (doc-id host)))))))
+
+(test new-unresolved-host-function
+  "new-host can now create a hostname-only canonical document"
+  (let ((host (new-host "test-dataset" :hostname "pending.example" :ip "")))
+    (is (typep host 'host))
+    (is (equal (doc-type host) "host"))
+    (is (equal (doc-id host) (digest-id "hostname" "pending.example")))))
+
+(test unresolved-host-v09-round-trip-preserves-identity
+  "Hostname-only host identity survives canonical JSON encode/decode"
+  (let* ((host (new-host "test-dataset"
+                         :hostname "Pending.Example."
+                         :ip ""))
+         (expected-id (doc-id host))
+         (decoded (decode-document (encode host))))
+    (is (typep decoded 'host))
+    (is (equal expected-id (doc-id decoded)))
+    (is (equal "Pending.Example." (host-hostname decoded)))
+    (is (equal "" (host-ip decoded)))))
 
 (test url-creation
   "Test URL entity creation"
