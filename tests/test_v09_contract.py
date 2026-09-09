@@ -44,6 +44,7 @@ class CommonLispV09ContractTests(unittest.TestCase):
             ROOT / "src" / "schema-org.lisp",
             ROOT / "src" / "types.lisp",
             ROOT / "src" / "documents.lisp",
+            ROOT / "src" / "operations.lisp",
             ROOT / "src" / "json.lisp",
             ROOT / "src" / "json-v09.lisp",
             ROOT / "src" / "exports-v09.lisp",
@@ -54,21 +55,30 @@ class CommonLispV09ContractTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertTrue(balanced_lisp(path.read_text(encoding="utf-8")))
 
-    def test_system_and_document_versions_are_v09(self) -> None:
+    def test_release_is_091_and_wire_contract_is_v09(self) -> None:
         asd = (ROOT / "src" / "starintel.asd").read_text(encoding="utf-8")
         documents = (ROOT / "src" / "documents.lisp").read_text(encoding="utf-8")
-        self.assertIn(':version "0.9.0"', asd)
+        self.assertIn(':version "0.9.1"', asd)
         self.assertIn('+starintel-doc-version+ "0.9.0"', documents)
         self.assertIn("schema-version", documents)
         self.assertIn("schema-org", documents)
         self.assertRegex(documents, r"date-added\s+:accessor doc-added\s+:type string")
         self.assertRegex(documents, r"version\s+:accessor doc-version\s+:type integer")
 
-    def test_schema_org_map_covers_49_types(self) -> None:
+    def test_schema_org_map_covers_51_types(self) -> None:
         source = (ROOT / "src" / "schema-org.lisp").read_text(encoding="utf-8")
         mapping = re.findall(r'\("([a-z0-9-]+)"\s+\.\s+\("[A-Za-z]+"\)\)', source)
-        self.assertEqual(len(mapping), 49)
-        self.assertEqual(len(set(mapping)), 49)
+        self.assertEqual(len(mapping), 51)
+        self.assertEqual(len(set(mapping)), 51)
+        self.assertIn("operation", mapping)
+        self.assertIn("research-node", mapping)
+
+    def test_operation_is_thin_canonical_schema_consumer(self) -> None:
+        source = (ROOT / "src" / "operations.lisp").read_text(encoding="utf-8")
+        self.assertIn("(defclass operation (document) ())", source)
+        self.assertIn("canonical JSON-LD ontology", source)
+        self.assertNotIn("phase-id", source)
+        self.assertNotIn("capability-gap", source)
 
     def test_wire_codec_nests_subtype_slots(self) -> None:
         codec = (ROOT / "src" / "json-v09.lisp").read_text(encoding="utf-8")

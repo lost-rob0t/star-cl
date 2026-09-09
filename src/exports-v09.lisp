@@ -39,6 +39,7 @@
           doc-schema-org
           doc-data
           doc-extensions
+          operation
           refresh-schema-org
           touch
           update-timestamp
