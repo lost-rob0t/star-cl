@@ -2,15 +2,18 @@
 
 (defparameter +schema-org-context+ "https://schema.org/")
 
+;;; Transitional v0.9 compatibility table.  The canonical JSON-LD ontology
+;;; system must replace this language-local vocabulary as semantic authority.
 (defparameter +canonical-dtypes+
   '("actor-manifest" "address" "alert" "analysis" "asset" "breach"
     "campaign-finance" "claim" "concept" "contract" "dataset-manifest"
     "document" "domain" "education" "email" "email-message" "employment"
     "entity" "event" "evidence-record" "file" "financial-observation" "geo"
     "grant" "host" "investigation-target" "legal-case" "lobbying-filing"
-    "location" "media" "meeting" "message" "network" "observation" "org"
-    "ownership" "person" "phone" "policy" "procurement" "product" "relation"
-    "research-pass" "social-media-post" "source" "target" "task" "url" "user"))
+    "location" "media" "meeting" "message" "network" "observation" "operation"
+    "org" "ownership" "person" "phone" "policy" "procurement" "product"
+    "relation" "research-node" "research-pass" "social-media-post" "source"
+    "target" "task" "url" "user"))
 
 (defparameter *dtype-aliases*
   '(("organization" . "org")
@@ -30,6 +33,7 @@
     ("socialmediapost" . "social-media-post")
     ("investigationtarget" . "investigation-target")
     ("researchpass" . "research-pass")
+    ("researchnode" . "research-node")
     ("datasetmanifest" . "dataset-manifest")
     ("actormanifest" . "actor-manifest")
     ("legalcase" . "legal-case")
@@ -73,6 +77,7 @@
     ("message" . ("Message"))
     ("network" . ("Thing"))
     ("observation" . ("CreativeWork"))
+    ("operation" . ("Action"))
     ("org" . ("Organization"))
     ("ownership" . ("Role"))
     ("person" . ("Person"))
@@ -81,6 +86,7 @@
     ("procurement" . ("DigitalDocument"))
     ("product" . ("Product"))
     ("relation" . ("Role"))
+    ("research-node" . ("Action"))
     ("research-pass" . ("CreativeWork"))
     ("social-media-post" . ("SocialMediaPosting"))
     ("source" . ("CreativeWork"))
