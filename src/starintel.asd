@@ -10,6 +10,7 @@
                (:file "schema-org")
                (:file "types")
                (:file "documents")
+               (:file "operations")
                (:file "entities")
                (:file "hosts")
                (:file "web")
