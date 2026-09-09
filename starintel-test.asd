@@ -13,6 +13,7 @@
                  (:file "hosts-test")
                  (:file "web-test")
                  (:file "relations-test")
+                 (:file "operations-test")
                  (:file "json-test")
                  (:file "define-test")
                  (:file "v090-test"))))
