@@ -1,8 +1,8 @@
 (asdf:defsystem :starintel-test
-  :description "Required test suite for StarIntel v0.9"
+  :description "Required test suite for the StarIntel 0.9.1 release"
   :author "nsaspy"
   :license "GPL-3.0-or-later"
-  :version "0.9.0"
+  :version "0.9.1"
   :depends-on (#:starintel #:fiveam)
   :serial t
   :components ((:module "t"
