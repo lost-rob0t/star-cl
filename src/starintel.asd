@@ -1,8 +1,8 @@
 (asdf:defsystem :starintel
-  :description "Canonical Common Lisp runtime for StarIntel document schema v0.9.0"
+  :description "Canonical Common Lisp runtime for the StarIntel 0.9.1 release on the v0.9 wire contract"
   :author "nsaspy"
   :license "GPL-3.0-or-later"
-  :version "0.9.0"
+  :version "0.9.1"
   :serial t
   :depends-on (#:jsown #:com.inuoe.jzon #:ironclad #:local-time #:cms-ulid #:str #:cl-ppcre #:closer-mop)
   :components ((:file "package")
