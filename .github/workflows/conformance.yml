@@ -32,6 +32,32 @@ jobs:
           ref: ${{ steps.schema-lock.outputs.commit }}
           path: conformance-source
 
+      - name: Verify vendored artifacts are exact pinned canonical copies
+        shell: bash
+        run: |
+          set -euo pipefail
+          schema_path="$(jq -r .schema_path schema/starintel-schema.lock.json)"
+          expansion_path="$(jq -r .expansion_path schema/starintel-schema.lock.json)"
+          manifest_path="$(jq -r .manifest_path schema/starintel-schema.lock.json)"
+
+          for path in "$schema_path" "$expansion_path" "$manifest_path"; do
+            test -f "$path"
+            test -f "conformance-source/$path"
+            if ! cmp --silent "$path" "conformance-source/$path"; then
+              echo "::error file=$path::vendored artifact differs from pinned canonical source"
+              echo "vendored:  $(sha256sum "$path")"
+              echo "canonical: $(sha256sum "conformance-source/$path")"
+              exit 1
+            fi
+          done
+
+          grep -q '"operation"' "$schema_path"
+          jq -e '.dtype_fields.operation != null' "$expansion_path" >/dev/null
+          jq -e '.dtype_count == 51' "$manifest_path" >/dev/null
+          jq -e '.release_version == "0.9.1"' "$manifest_path" >/dev/null
+          jq -e '.profile_version == "0.9.1"' "$manifest_path" >/dev/null
+          jq -e '.schema_revision == "0.9.0+fields.20260909.1"' "$manifest_path" >/dev/null
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
