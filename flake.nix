@@ -51,6 +51,20 @@
           dontStrip = true;
         };
 
+        starintel-archive = pkgs.sbcl.buildASDFSystem rec {
+          pname = "starintel-archive";
+          version = "0.1.0";
+          src = ./.;
+
+          lispLibs = [
+            self.starintel
+          ];
+
+          systems = [ "starintel-archive" ];
+          asdFilesToKeep = [ "starintel-archive.asd" "starintel-archive-test.asd" ];
+          dontStrip = true;
+        };
+
         starintel-test = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel-test";
           version = "0.9.0";
@@ -64,25 +78,45 @@
           systems = [ "starintel-test" ];
           dontStrip = true;
         };
+        starintel-archive-test = pkgs.sbcl.buildASDFSystem rec {
+          pname = "starintel-archive-test";
+          version = "0.1.0";
+          src = ./.;
+
+          lispLibs = [
+            self.starintel-archive
+            self.fiveam
+          ];
+
+          systems = [ "starintel-archive-test" ];
+          dontStrip = true;
+        };
+
       });
 
       starintel = sbcl'.pkgs.starintel;
+      starintel-archive = sbcl'.pkgs.starintel-archive;
       starintel-test = sbcl'.pkgs.starintel-test;
+      starintel-archive-test = sbcl'.pkgs.starintel-archive-test;
       cms-ulid = sbcl'.pkgs.cms-ulid;
 
       sbcl-wrapped = sbcl'.withPackages (ps: [
         ps.starintel
+        ps.starintel-archive
       ]);
 
       sbcl-test-wrapped = sbcl'.withPackages (ps: [
         ps.starintel-test
+        ps.starintel-archive-test
       ]);
     in
     {
       packages.${system} = {
         default = starintel;
         starintel = starintel;
+        starintel-archive = starintel-archive;
         starintel-test = starintel-test;
+        starintel-archive-test = starintel-archive-test;
         cms-ulid = cms-ulid;
         sbcl-wrapped = sbcl-wrapped;
         sbcl-test-wrapped = sbcl-test-wrapped;
@@ -109,6 +143,8 @@
                         (progn
                           (asdf:load-system :starintel-test)
                           (asdf:test-system :starintel-test)
+                          (asdf:load-system :starintel-archive-test)
+                          (asdf:test-system :starintel-archive-test)
                           (uiop:quit 0))
                         (error (condition)
                           (format *error-output* \"~&StarIntel tests failed: ~a~%\" condition)
