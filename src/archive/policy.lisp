@@ -156,9 +156,8 @@
     (policy-error "policy overrides must be a property list"))
   (unless (evenp (length overrides))
     (policy-error "policy overrides must contain key/value pairs"))
-  (loop for (key value) on overrides by #'cddr
-        do (declare (ignore value))
-           (unless (member key +override-keys+ :test #'eq)
+  (loop for key in overrides by #'cddr
+        do (unless (member key +override-keys+ :test #'eq)
              (policy-error "unknown policy override key ~S" key)))
   overrides)
 
