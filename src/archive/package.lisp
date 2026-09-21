@@ -75,4 +75,4 @@
    #:backend-put-artifact
    #:backend-stat-artifact
    #:backend-read-artifact
-   #:backend-delete-artifact)))
+   #:backend-delete-artifact))
