@@ -38,7 +38,7 @@ def balanced_lisp(text: str) -> bool:
     return depth == 0 and not in_string
 
 
-class CommonLispV09ContractTests(unittest.TestCase):
+class CommonLispCompatibilityContractTests(unittest.TestCase):
     def test_changed_lisp_files_are_balanced(self) -> None:
         paths = [
             ROOT / "src" / "schema-org.lisp",
@@ -48,6 +48,8 @@ class CommonLispV09ContractTests(unittest.TestCase):
             ROOT / "src" / "json.lisp",
             ROOT / "src" / "json-v09.lisp",
             ROOT / "src" / "exports-v09.lisp",
+            ROOT / "src" / "v0101.lisp",
+            ROOT / "src" / "migration-v0101.lisp",
             ROOT / "t" / "documents-test.lisp",
             ROOT / "t" / "json-test.lisp",
         ]
@@ -55,10 +57,11 @@ class CommonLispV09ContractTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertTrue(balanced_lisp(path.read_text(encoding="utf-8")))
 
-    def test_release_is_091_and_wire_contract_is_v09(self) -> None:
+    def test_release_is_0101_and_legacy_wire_contract_remains_explicit(self) -> None:
         asd = (ROOT / "src" / "starintel.asd").read_text(encoding="utf-8")
         documents = (ROOT / "src" / "documents.lisp").read_text(encoding="utf-8")
-        self.assertIn(':version "0.9.1"', asd)
+        self.assertIn(':version "0.10.1"', asd)
+        self.assertIn("starintel/v0101", asd)
         self.assertIn('+starintel-doc-version+ "0.9.0"', documents)
         self.assertIn("schema-version", documents)
         self.assertIn("schema-org", documents)

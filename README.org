@@ -1,9 +1,21 @@
 #+title: Readme
 
 * Star-cl
-Port of starintel-doc to common lisp
+Common Lisp bindings and compatibility runtime for StarIntel 0.10.1.
 
-Mostly will be used by hackmode and starintel-gserver.
+Star-Lang library =org.starintel/core@1= is the schema authority.  This
+repository consumes its generated Common Lisp binding, JSON Schema,
+compatibility policy, and shared migration fixtures at the exact commit pinned
+in =schema/starintel-schema.lock.json=.
+
+Canonical 0.10.1 document keys are lowerCamelCase.  snake_case is accepted only
+by the legacy migration boundary.  Invalid legacy documents are quarantined and
+the rest of the batch continues.
+
+The =starintel/v0101= ASDF system and =starintel-v0101= package provide canonical
+validation, round trips, migration, and capabilities.  The historical 0.9
+runtime remains available explicitly through =starintel-v090.asd= and
+=bin/starintel-conformance-v090.lisp=.
 
 
 ** Install
@@ -11,19 +23,11 @@ Install quicklisp
 Git clone into the common-lisp directory
 #+Name: install
 #+begin_src sh :async :results output replace
-git clone --recurse-submodules https://github.com/lost-rob0t/star-cl.git ~/common-lisp/star-cl
+git clone --recurse-submodules https://git.starintel.actor/nsaspy/star-cl.git ~/common-lisp/star-cl
 #+end_src
 
-** Differences from doc-nim
-
-+ Person doesnt inherit from eid
-+ there is no testing for in-scope or out-scope
-
-
-
-
-** Future plans
-
-This version of the spec, one day will be the defacto stanadard and will be used to generate other spec libs. It gets old re-writing this stuff by hand and most of it is very basic, no advanced functionality other then setting fields
-
-See [[file:./TODO.org][Todo list]] for list of stuff i havent done yet
+** Verify
+#+begin_src sh
+nix flake check -L
+python -m unittest discover -s tests -p 'test_v09_contract.py' -v
+#+end_src

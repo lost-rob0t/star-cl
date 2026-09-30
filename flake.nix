@@ -1,5 +1,5 @@
 {
-  description = "Star-cl: StarIntel v0.9.0 document implementation";
+  description = "Star-cl: StarIntel 0.10.1 bindings with legacy migration";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -32,12 +32,13 @@
 
         starintel = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel";
-          version = "0.9.0";
+          version = "0.10.1";
           src = ./.;
 
           lispLibs = [
             self.jsown
             self.jzon
+            self.babel
             self.cl-ppcre
             self.ironclad
             self.local-time
@@ -46,14 +47,14 @@
             self.closer-mop
           ];
 
-          systems = [ "starintel" ];
+          systems = [ "starintel" "starintel/v0101" ];
           asdFilesToKeep = [ "src/starintel.asd" "starintel-v090.asd" "starintel-test.asd" ];
           dontStrip = true;
         };
 
         starintel-test = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel-test";
-          version = "0.9.0";
+          version = "0.10.1";
           src = ./.;
 
           lispLibs = [
@@ -141,7 +142,7 @@
         ];
 
         shellHook = ''
-          echo "StarIntel v0.9.0 development environment ready"
+          echo "StarIntel v0.10.1 development environment ready"
           echo "Test with: nix flake check"
         '';
       };

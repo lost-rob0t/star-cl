@@ -14,49 +14,37 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate canonical schema lock
+      - name: Validate Star-Lang authority lock
         run: |
-          test "$(jq -r .canonical_repository schema/starintel-schema.lock.json)" = "lost-rob0t/starintel-gpt-auto-dig"
-          test "$(jq -r .release_version schema/starintel-schema.lock.json)" = "0.9.1"
-          jq -e '.required_dtypes | index("research-node") != null' schema/starintel-schema.lock.json > /dev/null
-          jq -e '.required_dtypes | index("operation") != null' schema/starintel-schema.lock.json > /dev/null
+          test "$(jq -r .canonical_repository schema/starintel-schema.lock.json)" = "nsaspy/star-lang"
+          test "$(jq -r .release_version schema/starintel-schema.lock.json)" = "0.10.1"
+          test "$(jq -r .canonical_key_style schema/starintel-schema.lock.json)" = "lowerCamelCase"
+          jq -e '.required_dtypes | index("audio") != null' schema/starintel-schema.lock.json >/dev/null
+          jq -e '.required_dtypes | index("person-identifier") != null' schema/starintel-schema.lock.json >/dev/null
+          jq -e '.required_dtypes | index("geo-point") != null' schema/starintel-schema.lock.json >/dev/null
 
-      - name: Read canonical schema lock
+      - name: Read Star-Lang commit
         id: schema-lock
         run: echo "commit=$(jq -r .canonical_commit schema/starintel-schema.lock.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout pinned conformance source
+      - name: Checkout pinned Star-Lang authority
         uses: actions/checkout@v6
         with:
-          repository: lost-rob0t/starintel-gpt-auto-dig
+          repository: nsaspy/star-lang
           ref: ${{ steps.schema-lock.outputs.commit }}
-          path: conformance-source
+          path: star-lang
 
-      - name: Verify vendored artifacts are exact pinned canonical copies
+      - name: Verify generated artifacts are exact authority copies
         shell: bash
         run: |
           set -euo pipefail
-          schema_path="$(jq -r .schema_path schema/starintel-schema.lock.json)"
-          expansion_path="$(jq -r .expansion_path schema/starintel-schema.lock.json)"
-          manifest_path="$(jq -r .manifest_path schema/starintel-schema.lock.json)"
-
-          for path in "$schema_path" "$expansion_path" "$manifest_path"; do
-            test -f "$path"
-            test -f "conformance-source/$path"
-            if ! cmp --silent "$path" "conformance-source/$path"; then
-              echo "::error file=$path::vendored artifact differs from pinned canonical source"
-              echo "vendored:  $(sha256sum "$path")"
-              echo "canonical: $(sha256sum "conformance-source/$path")"
-              exit 1
-            fi
-          done
-
-          grep -q '"operation"' "$schema_path"
-          jq -e '.dtype_fields.operation != null' "$expansion_path" >/dev/null
-          jq -e '.dtype_count == 51' "$manifest_path" >/dev/null
-          jq -e '.release_version == "0.9.1"' "$manifest_path" >/dev/null
-          jq -e '.profile_version == "0.9.1"' "$manifest_path" >/dev/null
-          jq -e '.schema_revision == "0.9.0+fields.20260909.1"' "$manifest_path" >/dev/null
+          cmp schema/starintel-0.10.1.schema.json star-lang/specs/starintel/0.10.1/generated/schema.json
+          cmp schema/starintel-0.10.1.manifest.json star-lang/specs/starintel/0.10.1/generated/portable-manifest.json
+          cmp schema/starintel-0.10.1.compatibility.json star-lang/specs/starintel/0.10.1/compatibility.json
+          cmp schema/starintel-0.10.1.compatibility-fixtures.json star-lang/specs/starintel/0.10.1/compatibility-fixtures.json
+          cmp schema/starintel-0.10.1.release-lock.json star-lang/specs/starintel/0.10.1/release-lock.json
+          cmp generated/starintel.lisp star-lang/specs/starintel/0.10.1/generated/starintel.lisp
+          python star-lang/tools/finalize-starintel-release.py --check
 
       - uses: actions/setup-python@v6
         with:
@@ -65,15 +53,14 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
 
-      - name: Run existing Common Lisp suite
-        env:
-          STARINTEL_CONFORMANCE_ROOT: ${{ github.workspace }}/conformance-source
+      - name: Run Common Lisp and compatibility suites
         run: |
           mkdir -p artifacts
           set -o pipefail
           nix flake check -L 2>&1 | tee artifacts/nix-check.log
+          python -m unittest discover -s tests -p 'test_v09_contract.py' -v
 
-      - name: Install standalone v0.9 runtime dependencies
+      - name: Install standalone adapter dependencies
         run: |
           sudo apt-get update
           sudo apt-get install --yes sbcl curl
@@ -82,28 +69,19 @@ jobs:
             --load /tmp/quicklisp.lisp \
             --eval '(quicklisp-quickstart:install :path (merge-pathnames "quicklisp/" (user-homedir-pathname)))' \
             --eval '(quit)'
-          cat >/tmp/install-starintel-v090-deps.lisp <<'LISP'
-          (load (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname)))
-          (ql:quickload '(:com.inuoe.jzon :cl-ppcre) :silent t)
-          (quit)
-          LISP
-          sbcl --script /tmp/install-starintel-v090-deps.lisp
+          sbcl --non-interactive \
+            --load "$HOME/quicklisp/setup.lisp" \
+            --eval '(ql:quickload (quote (:babel :com.inuoe.jzon :ironclad :cl-ppcre)) :silent t)' \
+            --eval '(quit)'
 
-      - name: Run Common Lisp fixture suite
-        working-directory: conformance-source
+      - name: Smoke-test canonical and legacy adapter inputs
+        shell: bash
         run: |
-          set +e
-          set -o pipefail
-          python -m conformance.runner test \
-            --producer cl \
-            --consumer cl \
-            --adapter "cl=sbcl --script $GITHUB_WORKSPACE/bin/starintel-conformance.lisp" \
-            2>&1 | tee "$GITHUB_WORKSPACE/artifacts/cl-matrix.log"
-          status=${PIPESTATUS[0]}
-          if [ -f artifacts/conformance-report.json ]; then
-            cp artifacts/conformance-report.json "$GITHUB_WORKSPACE/artifacts/cl-conformance-report.json"
-          fi
-          exit "$status"
+          set -euo pipefail
+          printf '%s\n' '{"command":"version"}' | sbcl --script bin/starintel-conformance.lisp | jq -e '.ok and .spec_version == "0.10.1"'
+          printf '%s\n' '{"command":"normalize","spec_version":"0.9.0","document":{"_id":"person-ci","dataset":"fixture","dtype":"person","schema_version":"0.9.0","data":{"fname":"Ada"}}}' \
+            | sbcl --script bin/starintel-conformance.lisp \
+            | jq -e '.ok and .document.schemaVersion == "0.10.1" and .document.fname == "Ada"'
 
       - name: Upload Common Lisp diagnostics
         if: always()

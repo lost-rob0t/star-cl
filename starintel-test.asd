@@ -1,8 +1,8 @@
 (asdf:defsystem :starintel-test
-  :description "Required test suite for the StarIntel 0.9.1 release"
+  :description "Required StarIntel 0.10.1 and legacy compatibility test suite"
   :author "nsaspy"
   :license "GPL-3.0-or-later"
-  :version "0.9.1"
+  :version "0.10.1"
   :depends-on (#:starintel #:fiveam)
   :serial t
   :components ((:module "t"
@@ -16,7 +16,8 @@
                  (:file "operations-test")
                  (:file "json-test")
                  (:file "define-test")
-                 (:file "v090-test"))))
+                 (:file "v090-test")
+                 (:file "v0101-test"))))
   :perform (test-op (operation component)
              (declare (ignore operation component))
              (unless (uiop:symbol-call :starintel-test :run-tests)

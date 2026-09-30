@@ -1,1 +1,2 @@
 *.fasl
+__pycache__/
