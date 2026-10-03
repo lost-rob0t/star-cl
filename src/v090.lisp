@@ -3,6 +3,9 @@
 (defparameter +starintel-schema-version+ "0.9.0")
 (defparameter +starintel-adapter-version+ 1)
 
+(defvar *validation-schema-root* nil)
+(defvar *validation-ref-hook* nil)
+
 (define-condition starintel-validation-error (error)
   ((category :initarg :category :reader validation-category)
    (message :initarg :message :reader validation-message))
@@ -74,6 +77,17 @@
         "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
         value)))
 
+(defun valid-date-p (value)
+  (when (and (stringp value) (cl-ppcre:scan "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" value))
+    (let* ((year (parse-integer value :end 4))
+           (month (parse-integer value :start 5 :end 7))
+           (day (parse-integer value :start 8))
+           (leap (and (zerop (mod year 4))
+                      (or (not (zerop (mod year 100))) (zerop (mod year 400))))))
+      (and (<= 1 month 12)
+           (<= 1 day (if (= month 2) (if leap 29 28)
+                         (aref #(31 28 31 30 31 30 31 31 30 31 30 31) (1- month))))))))
+
 (defun vector-member-equalp (value vector)
   (loop for item across vector thereis (equalp value item)))
 
@@ -134,6 +148,22 @@
   (when (zerop (hash-table-count schema))
     (return-from validate-v090-value t))
 
+  (when (hash-present-p schema "$ref")
+    (let* ((reference (hash-value schema "$ref"))
+           (prefix "#/$defs/")
+           (definition
+             (and *validation-schema-root*
+                  (stringp reference)
+                  (<= (length prefix) (length reference))
+                  (string= prefix reference :end2 (length prefix))
+                  (hash-value (hash-value *validation-schema-root* "$defs")
+                              (subseq reference (length prefix))))))
+      (unless definition
+        (error "Unsupported or unresolved schema reference: ~s" reference))
+      (validate-v090-value value definition path)
+      (when *validation-ref-hook*
+        (funcall *validation-ref-hook* value (subseq reference (length prefix)) path))))
+
   (when (hash-present-p schema "anyOf")
     (return-from validate-v090-value
       (validate-any-of value (hash-value schema "anyOf") path)))
@@ -154,6 +184,11 @@
                          path expected (json-type-name value)))))
 
   (when (stringp value)
+    (when (and (equal (hash-value schema "format") "date") (not (valid-date-p value)))
+      (reject-document "invalid_date" "~a: invalid ISO-8601 date" path))
+    (when (and (equal (hash-value schema "format") "uri")
+               (not (cl-ppcre:scan "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]*$" value)))
+      (reject-document "invalid_uri" "~a: invalid URI" path))
     (when (and (hash-present-p schema "format")
                (string= (hash-value schema "format") "date-time")
                (not (valid-date-time-p value)))

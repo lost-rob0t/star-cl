@@ -24,6 +24,50 @@ git clone --recurse-submodules https://github.com/lost-rob0t/star-cl.git ~/commo
 
 ** Future plans
 
-This version of the spec, one day will be the defacto stanadard and will be used to generate other spec libs. It gets old re-writing this stuff by hand and most of it is very basic, no advanced functionality other then setting fields
+Canonical types now come from StarLang-generated bindings. Independent language-local object models are retained only for historical compatibility.
 
 See [[file:./TODO.org][Todo list]] for list of stuff i havent done yet
+
+** Canonical StarIntel 0.10.1
+
+StarLang (=lost-rob0t/star-lang=) owns the specification. The active
+=schema/starintel-schema.lock.json= pins a complete immutable generated release;
+this library never regenerates or hand-edits its canonical object model.
+
+Use ASDF =starintel-0101= for the generated =org.starintel.core.v1= structures
+and =starintel.canonical= JSON validation/encoding boundary. Wire documents are
+flat, with =id= and =schemaVersion=, and all declared keys use lowerCamelCase.
+The validator selects the dtype definition from the generated portable manifest,
+resolves JSON Schema references, and applies portable decimal bounds and scale.
+
+#+begin_src lisp
+(asdf:load-system :starintel-0101)
+(starintel.canonical:encode-document
+ (org.starintel.core.v1:make-person
+  :id "person:ada" :dataset "example" :dtype "person"
+  :schemaversion "0.10.1" :fname "Ada"))
+#+end_src
+
+For generated optional slots, NIL means absent; use =:false= for an explicit
+JSON false value. Hash-table JSON inputs preserve missing fields, false, null,
+empty arrays, and opaque extension data directly.
+
+The historical =starintel:= CLOS constructors and v0.9 codec are explicit
+compatibility APIs. They retain their original wire format and archived
+=schema/starintel-legacy-schema.lock.json=. They are not a migration API;
+never relabel a legacy payload as 0.10.1. Canonical migration policy/fixtures
+are shipped unchanged from StarLang for downstream migration work.
+
+Repin and verify with:
+
+#+begin_src sh
+python3 bin/sync-starintel-schema.py --commit <full-StarLang-commit>
+python3 bin/sync-starintel-schema.py
+nix flake check -L
+#+end_src
+
+All downstream libraries and applications must consume that same StarLang
+release. The reusable =tools/sync-starintel-consumer.py= tool verifies upstream
+source/output hashes before writing, and fails on vendored drift or a floating
+pin. Existing Python, Nim, or JavaScript models are legacy compatibility inputs,
+not alternate canonical specifications.
