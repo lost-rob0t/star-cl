@@ -5,7 +5,7 @@
 ;; Own the JSON boundary rather than patching its internals or recovering tokens
 ;; after a lossy parse. Delegate only JSON strings and ordinary scalar writing.
 (defstruct (json-number (:constructor %make-json-number (lexeme)))
-  "An exact JSON fractional/exponent token, independent of binary float range."
+  "An exact JSON fractional/exponent or signed-zero token, independent of binary float range."
   (lexeme "0.0" :type string :read-only t))
 
 (defun json-number-token-p (token)
@@ -15,9 +15,11 @@
 
 (defun parse-json (input)
   "Parse strict JSON from a string, character stream, or UTF-8 pathname.
-Integers are native arbitrary-precision integers. Fractional/exponent tokens
-are JSON-NUMBER values: their lexemes survive STRINGIFY-JSON exactly. Arrays
-are vectors, objects are hash tables, false is NIL, and null is CL:NULL."
+Ordinary integers are native arbitrary-precision integers. The -0 token and
+fractional/exponent tokens are JSON-NUMBER values: their lexemes survive
+STRINGIFY-JSON exactly. Arrays are vectors, objects are hash tables, false is
+NIL, and null is CL:NULL. Duplicate decoded object keys are rejected, including
+repeated equal values."
   (let* ((source (etypecase input
                    (string input)
                    (pathname (uiop:read-file-string input :external-format :utf-8))
@@ -63,7 +65,8 @@ are vectors, objects are hash tables, false is NIL, and null is CL:NULL."
                       (token (subseq source start end)))
                  (unless (json-number-token-p token) (fail "Invalid JSON number"))
                  (setf position end)
-                 (if (find-if (lambda (char) (find char ".eE")) token)
+                 (if (or (string= token "-0")
+                         (find-if (lambda (char) (find char ".eE")) token))
                      (%make-json-number token)
                      (parse-integer token))))
              (value (depth)
@@ -83,6 +86,10 @@ are vectors, objects are hash tables, false is NIL, and null is CL:NULL."
                       (loop
                         (unless (eql (peek) #\") (fail "Expected JSON object key"))
                         (let ((key (string-value)))
+                          ;; Presence is distinct from a false/NIL value. The
+                          ;; string reader has already decoded JSON escapes.
+                          (when (nth-value 1 (gethash key object))
+                            (fail (format nil "Duplicate JSON key ~s" key)))
                           (skip-space) (expect #\:)
                           (setf (gethash key object) (value (1+ depth))))
                         (skip-space)

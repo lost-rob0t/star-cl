@@ -37,8 +37,13 @@
 
 (defun run-adapter ()
   (handler-case
-      (let* ((request (com.inuoe.jzon:parse *standard-input*))
+      (let* ((input (uiop:slurp-stream-string *standard-input*))
+             ;; Check raw keys before Jzon can erase them, then retain the
+             ;; historical decoder's numeric values and schema behavior.
+             (checked (starintel:parse-json input))
+             (request (com.inuoe.jzon:parse input))
              (command (request-command request)))
+        (declare (ignore checked))
         (unless (hash-table-p request)
           (emit-json (response-error "adapter_failure"
                                      "request must be a JSON object"))
