@@ -121,3 +121,12 @@ exact integral values such as =1.0= and =1e0= and rejects fractional tails.
  (starintel.canonical:parse-json
   "{\"precise\":0.12345678901234567890123456789,\"huge\":1e10000}"))
 #+end_src
+
+** Raw JSON object keys
+
+Raw JSON parsers reject duplicate decoded object keys, including equal values
+and escaped spellings, before a mapping can overwrite them. Each object has its
+own key scope. Unicode normalization is not applied to distinct key strings.
+The shared raw-text regression corpus is vendored in tests/fixtures/raw-json-unique-keys.json;
+it must match the StarLang specs/starintel/wire authority copy. Already-parsed
+objects cannot recover duplicates discarded by an upstream decoder.

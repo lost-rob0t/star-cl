@@ -98,6 +98,7 @@
           cd source
           python3 -m unittest discover -s tests -p test_v0101_runtime.py -v
           python3 -m unittest discover -s tests -p test_public_api.py -v
+          python3 -m unittest discover -s tests -p test_exact_json.py -v
           mkdir -p $out
         '';
         starintel-tests = pkgs.stdenv.mkDerivation {

@@ -54,6 +54,27 @@ class ExactJSONTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr[-4000:])
         self.assertIn("Exact JSON invariants passed", result.stdout)
 
+    def test_shared_raw_duplicate_key_corpus(self):
+        result = run("tests/duplicate-json-keys.lisp", "")
+        self.assertEqual(result.returncode, 0, result.stderr[-4000:])
+        self.assertIn("27 shared raw JSON key cases passed", result.stdout)
+
+    def test_historical_cli_checks_raw_keys_before_decoding(self):
+        cases = json.loads((ROOT / "tests/fixtures/raw-json-unique-keys.json").read_text())["cases"]
+        for case in cases:
+            # The historical Jzon decoder cannot represent 1e10000. Preserve
+            # that existing limit; canonical exact-number coverage is separate.
+            if case["name"] == "exact_values_control":
+                continue
+            request = '{"command":"version","probe":' + case["wire"] + '}'
+            result = run("bin/starintel-conformance.lisp", request)
+            with self.subTest(case=case["name"]):
+                self.assertEqual(result.returncode == 0, case["valid"], result.stderr[-2000:])
+                if not case["valid"]:
+                    self.assertIn("duplicate json key", (result.stdout + result.stderr).lower())
+                else:
+                    self.assertTrue(json.loads(result.stdout)["ok"])
+
     def test_bignum_beyond_typical_digit_limits(self):
         token = "9" * 5000
         result = boundary(token)
@@ -83,6 +104,25 @@ class ExactJSONTests(unittest.TestCase):
             raw = DOCUMENT[:-1] + ',"createdAt":' + token + '}'
             result = boundary(raw, "root")
             self.assertEqual(result.returncode == 0, valid, (token, result.stderr[-2000:]))
+
+    def test_all_zero_lexemes_survive_and_validate(self):
+        zeros = ["0", "-0", "0.0", "-0.0", "0e0", "-0e0", "0.000E+10000", "-0.000E-10000"]
+        for token in zeros:
+            with self.subTest(token=token):
+                result = boundary(token)
+                self.assertEqual(result.returncode, 0, result.stderr[-2000:])
+                self.assertEqual(result.stdout.strip(), token)
+                exact_zero = {"type": "integer", "minimum": 0, "maximum": 0}
+                checked = boundary(token, "bounds", schema=exact_zero)
+                self.assertEqual(checked.returncode, 0, checked.stderr[-2000:])
+                self.assertEqual(checked.stdout.strip(), token)
+        nested = '{"zeros":[' + ','.join(zeros) + ']}'
+        self.assertEqual(boundary(nested).stdout.strip(), nested)
+        raw = DOCUMENT[:-1] + ',"createdAt":-0}'
+        for mode in ["root", "root-decode"]:
+            result = boundary(raw, mode)
+            self.assertEqual(result.returncode, 0, result.stderr[-2000:])
+            self.assertIn('"createdAt":-0', result.stdout)
 
     def test_malformed_json_stays_rejected(self):
         for text in ["", "01", "-01", "+1", ".1", "1.", "1e", "1e+", "--1", "NaN", "Infinity", "-Infinity", "1 2",
