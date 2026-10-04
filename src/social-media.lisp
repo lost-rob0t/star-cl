@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass message (document)
   ((message :accessor message-content :type string :initarg :content :initform "")

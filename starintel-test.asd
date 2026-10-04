@@ -3,7 +3,7 @@
   :author "nsaspy"
   :license "GPL-3.0-or-later"
   :version "0.9.1"
-  :depends-on (#:starintel #:fiveam)
+  :depends-on (#:starintel-legacy #:fiveam)
   :serial t
   :components ((:module "t"
                 :components

@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass domain (document)
   ((record-type :accessor domain-record-type :type string :initarg :record-type :initform "")

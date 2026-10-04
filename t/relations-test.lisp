@@ -118,7 +118,7 @@
   "v0.9 encode emits subject, object, source, and target in data"
   (let* ((relation (new-relation "ds" "src-id" "tgt-id"
                                  :predicate "employed-by"))
-         (encoded (starintel:encode-document-v09 relation))
+         (encoded (starintel.legacy:encode-document-v09 relation))
          (data (jsown:val encoded "data")))
     (is (equal (jsown:val data "subject") "src-id"))
     (is (equal (jsown:val data "object") "tgt-id"))
@@ -128,13 +128,13 @@
 
 (test digest-id-is-deterministic
   "digest-id returns the same SHA-256 hex string for the same inputs"
-  (let ((id-1 (starintel:digest-id "alpha" "beta" "gamma"))
-        (id-2 (starintel:digest-id "alpha" "beta" "gamma")))
+  (let ((id-1 (starintel.legacy:digest-id "alpha" "beta" "gamma"))
+        (id-2 (starintel.legacy:digest-id "alpha" "beta" "gamma")))
     (is (stringp id-1))
     (is (= (length id-1) 64))
     (is (equal id-1 id-2))))
 
 (test digest-id-distinguishes-inputs
   "digest-id differs for different inputs"
-  (is (not (equal (starintel:digest-id "a" "b")
-                  (starintel:digest-id "b" "a")))))
+  (is (not (equal (starintel.legacy:digest-id "a" "b")
+                  (starintel.legacy:digest-id "b" "a")))))

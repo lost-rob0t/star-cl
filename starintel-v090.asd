@@ -6,4 +6,5 @@
   :serial t
   :depends-on (#:com.inuoe.jzon #:cl-ppcre)
   :components ((:file "src/v090-package")
+               (:file "src/exact-json")
                (:file "src/v090")))

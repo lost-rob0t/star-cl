@@ -1,7 +1,10 @@
 (in-package :starintel)
 
-(defparameter +starintel-schema-version+ "0.9.0")
-(defparameter +starintel-adapter-version+ 1)
+(defparameter +starintel-v090-schema-version+ "0.9.0")
+(defparameter +starintel-v090-adapter-version+ 1)
+
+(defvar *validation-schema-root* nil)
+(defvar *validation-ref-hook* nil)
 
 (define-condition starintel-validation-error (error)
   ((category :initarg :category :reader validation-category)
@@ -37,8 +40,8 @@
            (merge-pathnames "schemas/starintel-doc-v0.9.0.schema.json"
                             (uiop:ensure-directory-pathname root)))))
       (namestring
-       (merge-pathnames "schemas/starintel-doc-v0.9.0.schema.json"
-                        (uiop:getcwd)))))
+       (asdf:system-relative-pathname :starintel-v090
+         "schemas/starintel-doc-v0.9.0.schema.json"))))
 
 (defun load-v090-schema ()
   (let ((path (schema-path)))
@@ -51,7 +54,7 @@
     ((eq value 'null) "null")
     ((or (eq value t) (null value)) "boolean")
     ((integerp value) "integer")
-    ((floatp value) "number")
+    ((or (floatp value) (json-number-p value)) "number")
     ((stringp value) "string")
     ((vectorp value) "array")
     ((hash-table-p value) "object")
@@ -61,18 +64,43 @@
   (cond
     ((string= expected "null") (eq value 'null))
     ((string= expected "boolean") (or (eq value t) (null value)))
-    ((string= expected "integer") (integerp value))
-    ((string= expected "number") (numberp value))
+    ((string= expected "integer") (json-integer-p value))
+    ((string= expected "number") (json-numeric-p value))
     ((string= expected "string") (stringp value))
     ((string= expected "array") (vectorp value))
     ((string= expected "object") (hash-table-p value))
     (t t)))
 
+(defun full-pattern-p (pattern value)
+  (multiple-value-bind (start end) (cl-ppcre:scan pattern value)
+    (and start (zerop start) (= end (length value)))))
+
 (defun valid-date-time-p (value)
-  (and (stringp value)
-       (cl-ppcre:scan
-        "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?(Z|[+-][0-9]{2}:[0-9]{2})$"
-        value)))
+  (when (and (stringp value)
+             (full-pattern-p
+              "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt][0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$"
+              value))
+    (let ((hour (parse-integer value :start 11 :end 13))
+          (minute (parse-integer value :start 14 :end 16))
+          (second (parse-integer value :start 17 :end 19))
+          (last (char value (1- (length value)))))
+      (and (valid-date-p (subseq value 0 10))
+           (<= 0 hour 23) (<= 0 minute 59) (<= 0 second 59)
+           (or (find last "Zz")
+               (and (<= 0 (parse-integer value :start (- (length value) 5)
+                                                :end (- (length value) 3)) 23)
+                    (<= 0 (parse-integer value :start (- (length value) 2)) 59)))))))
+
+(defun valid-date-p (value)
+  (when (and (stringp value) (full-pattern-p "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" value))
+    (let* ((year (parse-integer value :end 4))
+           (month (parse-integer value :start 5 :end 7))
+           (day (parse-integer value :start 8))
+           (leap (and (zerop (mod year 4))
+                      (or (not (zerop (mod year 100))) (zerop (mod year 400))))))
+      (and (<= 1 year 9999) (<= 1 month 12)
+           (<= 1 day (if (= month 2) (if leap 29 28)
+                         (aref #(31 28 31 30 31 30 31 31 30 31 30 31) (1- month))))))))
 
 (defun vector-member-equalp (value vector)
   (loop for item across vector thereis (equalp value item)))
@@ -134,6 +162,22 @@
   (when (zerop (hash-table-count schema))
     (return-from validate-v090-value t))
 
+  (when (hash-present-p schema "$ref")
+    (let* ((reference (hash-value schema "$ref"))
+           (prefix "#/$defs/")
+           (definition
+             (and *validation-schema-root*
+                  (stringp reference)
+                  (<= (length prefix) (length reference))
+                  (string= prefix reference :end2 (length prefix))
+                  (hash-value (hash-value *validation-schema-root* "$defs")
+                              (subseq reference (length prefix))))))
+      (unless definition
+        (error "Unsupported or unresolved schema reference: ~s" reference))
+      (validate-v090-value value definition path)
+      (when *validation-ref-hook*
+        (funcall *validation-ref-hook* value (subseq reference (length prefix)) path))))
+
   (when (hash-present-p schema "anyOf")
     (return-from validate-v090-value
       (validate-any-of value (hash-value schema "anyOf") path)))
@@ -154,6 +198,11 @@
                          path expected (json-type-name value)))))
 
   (when (stringp value)
+    (when (and (equal (hash-value schema "format") "date") (not (valid-date-p value)))
+      (reject-document "invalid_date" "~a: invalid ISO-8601 date" path))
+    (when (and (equal (hash-value schema "format") "uri")
+               (not (cl-ppcre:scan "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]*$" value)))
+      (reject-document "invalid_uri" "~a: invalid URI" path))
     (when (and (hash-present-p schema "format")
                (string= (hash-value schema "format") "date-time")
                (not (valid-date-time-p value)))
@@ -162,12 +211,12 @@
                (not (cl-ppcre:scan (hash-value schema "pattern") value)))
       (reject-document "pattern_mismatch" "~a: string does not match pattern" path)))
 
-  (when (numberp value)
+  (when (json-numeric-p value)
     (when (and (hash-present-p schema "minimum")
-               (< value (hash-value schema "minimum")))
+               (json-numeric-less-p value (hash-value schema "minimum")))
       (reject-document "below_minimum" "~a: number is below minimum" path))
     (when (and (hash-present-p schema "maximum")
-               (> value (hash-value schema "maximum")))
+               (json-numeric-less-p (hash-value schema "maximum") value))
       (reject-document "above_maximum" "~a: number is above maximum" path)))
 
   (when (and (vectorp value) (hash-present-p schema "items"))
@@ -208,7 +257,7 @@
   (unless (and (hash-present-p document "schema_version")
                (stringp (hash-value document "schema_version"))
                (string= (hash-value document "schema_version")
-                        +starintel-schema-version+))
+                        +starintel-v090-schema-version+))
     (reject-document "unsupported_spec_version"
                      "$.schema_version: unsupported version"))
   (when (and (hash-present-p document "dtype")
@@ -296,8 +345,8 @@
 (defun v090-capabilities (schema)
   (json-object
    "language" "cl"
-   "adapter_version" +starintel-adapter-version+
-   "spec_versions" (vector +starintel-schema-version+)
+   "adapter_version" +starintel-v090-adapter-version+
+   "spec_versions" (vector +starintel-v090-schema-version+)
    "commands" (vector "validate" "normalize" "roundtrip" "version"
                       "capabilities" "schema-inventory")
    "object_types" (coerce (v090-object-types schema) 'vector)

@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass phone (document)
   ((number :accessor phone-number :type string :initarg :number :initform "")

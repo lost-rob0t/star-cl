@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass breach (document)
   ((total :accessor breach-total :type int :initarg :total :initform 0)

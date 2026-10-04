@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defun create (type &rest args)
   (apply #'make-instance type args))

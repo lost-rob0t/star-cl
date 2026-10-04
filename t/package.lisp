@@ -1,5 +1,5 @@
 (defpackage :starintel-test
-  (:use :cl :fiveam :starintel)
+  (:use :cl :fiveam :starintel.legacy)
   (:export #:run-tests
            #:starintel-test))
 

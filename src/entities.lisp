@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 ;; WARNING DEVIATION FROM SPEC!!!!!!!
 

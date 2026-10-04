@@ -1,0 +1,26 @@
+(require :asdf)
+(let ((*standard-output* *error-output*)) (asdf:load-system :starintel))
+(defun rejected-p (thunk)
+  (handler-case (progn (funcall thunk) nil) (error () t)))
+(let ((cycle (list 1)))
+  (setf (cdr cycle) cycle)
+  (assert (rejected-p (lambda () (starintel:stringify-json cycle)))))
+(assert (rejected-p (lambda () (starintel:stringify-json '(1 . 2)))))
+(assert (equal "[1,2,3]" (starintel:stringify-json '(1 2 3))))
+(let ((cycle (make-array 1)))
+  (setf (aref cycle 0) cycle)
+  (assert (rejected-p (lambda () (starintel:stringify-json cycle)))))
+(let ((nested 0))
+  (dotimes (index 128) (setf nested (vector nested)))
+  (assert (equalp nested (starintel:parse-json (starintel:stringify-json nested))))
+  (setf nested (vector nested))
+  (assert (rejected-p (lambda () (starintel:stringify-json nested)))))
+(assert (rejected-p
+         (lambda () (starintel:parse-json
+                      (concatenate 'string (make-string 129 :initial-element #\[)
+                                   "0" (make-string 129 :initial-element #\]))))))
+#+sbcl
+(progn
+  (assert (rejected-p (lambda () (starintel:stringify-json sb-ext:double-float-positive-infinity))))
+  (assert (rejected-p (lambda () (starintel:stringify-json sb-ext:double-float-negative-infinity)))))
+(write-line "Exact JSON invariants passed")

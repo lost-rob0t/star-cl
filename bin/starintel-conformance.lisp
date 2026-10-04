@@ -49,13 +49,13 @@
            (starintel::json-object
             "ok" t
             "language" "cl"
-            "spec_version" starintel::+starintel-schema-version+
-            "adapter_version" starintel::+starintel-adapter-version+))
+            "spec_version" starintel::+starintel-v090-schema-version+
+            "adapter_version" starintel::+starintel-v090-adapter-version+))
           (return-from run-adapter 0))
 
         (when (and (starintel::hash-present-p request "spec_version")
                    (not (string= (starintel::hash-value request "spec_version")
-                                 starintel::+starintel-schema-version+)))
+                                 starintel::+starintel-v090-schema-version+)))
           (emit-json
            (response-error "unsupported_spec_version"
                            (princ-to-string
@@ -73,7 +73,7 @@
              (emit-json
               (starintel::json-object
                "ok" t
-               "spec_version" starintel::+starintel-schema-version+
+               "spec_version" starintel::+starintel-v090-schema-version+
                "inventory" (starintel::v090-schema-inventory schema)))
              0)
             ((not (starintel::hash-present-p request "document"))
@@ -85,7 +85,7 @@
              (emit-json
               (starintel::json-object
                "ok" t
-               "spec_version" starintel::+starintel-schema-version+
+               "spec_version" starintel::+starintel-v090-schema-version+
                "warnings" #()))
              0)
             ((or (string= command "normalize")
@@ -96,7 +96,7 @@
                (emit-json
                 (starintel::json-object
                  "ok" t
-                 "spec_version" starintel::+starintel-schema-version+
+                 "spec_version" starintel::+starintel-v090-schema-version+
                  "document" document
                  "warnings" #())))
              0)

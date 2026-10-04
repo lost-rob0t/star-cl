@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defparameter *document-class-registry*
   (make-hash-table :test #'equal))
@@ -96,7 +96,7 @@
 
 (defun refresh-document-class-registry ()
   (clrhash *document-class-registry*)
-  (let ((package (find-package :starintel)))
+  (let ((package (find-package :starintel.legacy)))
     (loop for symbol being the external-symbols of package
           for class = (find-class symbol nil)
           when (and class (starintel-document-class-p class))

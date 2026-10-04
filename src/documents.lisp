@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defparameter +starintel-doc-version+ "0.9.0")
 (defparameter *default-hash-algo* :sha256)
