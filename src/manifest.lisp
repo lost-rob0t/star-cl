@@ -1,4 +1,4 @@
-(in-package #:starintel)
+(in-package #:starintel.legacy)
 
 (defclass actor-manifest ()
   ((_id :initarg :id :initform nil :accessor doc-id)

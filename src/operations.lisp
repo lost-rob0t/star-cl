@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 ;;; Transitional v0.9 runtime binding for starintel-server#151.
 ;;;

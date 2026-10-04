@@ -1,4 +1,4 @@
-name: StarIntel conformance
+name: Legacy StarIntel v0.9 conformance
 
 on:
   pull_request:
@@ -14,16 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate canonical schema lock
+      - name: Validate historical compatibility schema lock
         run: |
-          test "$(jq -r .canonical_repository schema/starintel-schema.lock.json)" = "lost-rob0t/starintel-gpt-auto-dig"
-          test "$(jq -r .release_version schema/starintel-schema.lock.json)" = "0.9.1"
-          jq -e '.required_dtypes | index("research-node") != null' schema/starintel-schema.lock.json > /dev/null
-          jq -e '.required_dtypes | index("operation") != null' schema/starintel-schema.lock.json > /dev/null
+          test "$(jq -r .canonical_repository schema/starintel-legacy-schema.lock.json)" = "lost-rob0t/starintel-gpt-auto-dig"
+          test "$(jq -r .release_version schema/starintel-legacy-schema.lock.json)" = "0.9.1"
+          jq -e '.required_dtypes | index("research-node") != null' schema/starintel-legacy-schema.lock.json > /dev/null
+          jq -e '.required_dtypes | index("operation") != null' schema/starintel-legacy-schema.lock.json > /dev/null
 
       - name: Read canonical schema lock
         id: schema-lock
-        run: echo "commit=$(jq -r .canonical_commit schema/starintel-schema.lock.json)" >> "$GITHUB_OUTPUT"
+        run: echo "commit=$(jq -r .canonical_commit schema/starintel-legacy-schema.lock.json)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout pinned conformance source
         uses: actions/checkout@v6
@@ -36,9 +36,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          schema_path="$(jq -r .schema_path schema/starintel-schema.lock.json)"
-          expansion_path="$(jq -r .expansion_path schema/starintel-schema.lock.json)"
-          manifest_path="$(jq -r .manifest_path schema/starintel-schema.lock.json)"
+          schema_path="$(jq -r .schema_path schema/starintel-legacy-schema.lock.json)"
+          expansion_path="$(jq -r .expansion_path schema/starintel-legacy-schema.lock.json)"
+          manifest_path="$(jq -r .manifest_path schema/starintel-legacy-schema.lock.json)"
 
           for path in "$schema_path" "$expansion_path" "$manifest_path"; do
             test -f "$path"

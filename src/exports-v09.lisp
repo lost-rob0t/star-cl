@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (export '(+starintel-doc-version+
           +schema-org-context+
@@ -64,4 +64,4 @@
           digest-id
           relation-subject
           relation-object)
-        (find-package :starintel))
+        (find-package :starintel.legacy))

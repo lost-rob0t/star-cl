@@ -1,5 +1,5 @@
 {
-  description = "Star-cl: StarIntel v0.9.0 document implementation";
+  description = "Star-cl: StarLang-generated StarIntel 0.10.1 contract and legacy compatibility";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -32,7 +32,7 @@
 
         starintel = pkgs.sbcl.buildASDFSystem rec {
           pname = "starintel";
-          version = "0.9.0";
+          version = "0.10.1";
           src = ./.;
 
           lispLibs = [
@@ -46,8 +46,8 @@
             self.closer-mop
           ];
 
-          systems = [ "starintel" ];
-          asdFilesToKeep = [ "src/starintel.asd" "starintel-v090.asd" "starintel-test.asd" ];
+          systems = [ "starintel" "starintel-0101" "starintel-v090" "starintel-legacy" ];
+          asdFilesToKeep = [ "src/starintel.asd" "starintel-legacy.asd" "starintel-0101.asd" "starintel-v090.asd" "starintel-test.asd" ];
           dontStrip = true;
         };
 
@@ -89,6 +89,17 @@
       };
 
       checks.${system} = {
+        canonical-contract = pkgs.runCommand "starintel-canonical-contract" {
+          nativeBuildInputs = [ pkgs.python3 sbcl-test-wrapped ];
+        } ''
+          export XDG_CACHE_HOME="$TMPDIR/.cache"
+          cp -r ${self} source
+          chmod -R u+w source
+          cd source
+          python3 -m unittest discover -s tests -p test_v0101_runtime.py -v
+          python3 -m unittest discover -s tests -p test_public_api.py -v
+          mkdir -p $out
+        '';
         starintel-tests = pkgs.stdenv.mkDerivation {
           name = "starintel-tests-check";
           src = ./.;
@@ -105,6 +116,7 @@
             ${sbcl-test-wrapped}/bin/sbcl --non-interactive --no-userinit --no-sysinit \
               --eval "(require :asdf)" \
               --eval "(push (truename \".\") asdf:*central-registry*)" \
+              --eval "(asdf:initialize-source-registry (list :source-registry (list :tree (truename \".\")) :inherit-configuration))" \
               --eval "(handler-case
                         (progn
                           (asdf:load-system :starintel-test)

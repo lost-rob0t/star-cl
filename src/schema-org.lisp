@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defparameter +schema-org-context+ "https://schema.org/")
 

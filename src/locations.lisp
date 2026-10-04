@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass geo (document)
   ((lat :accessor geo-lat :type float64 :initarg :lat :initform 0.0)

@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (define-condition codec-validation-error (error)
   ((operation

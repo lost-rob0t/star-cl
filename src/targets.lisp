@@ -1,4 +1,4 @@
-(in-package :starintel)
+(in-package :starintel.legacy)
 
 (defclass target (document)
   ((actor :accessor target-actor :type string :initarg :actor :initform "")

@@ -55,10 +55,10 @@ class CommonLispV09ContractTests(unittest.TestCase):
             with self.subTest(path=path.name):
                 self.assertTrue(balanced_lisp(path.read_text(encoding="utf-8")))
 
-    def test_release_is_091_and_wire_contract_is_v09(self) -> None:
+    def test_active_release_and_legacy_wire_contract(self) -> None:
         asd = (ROOT / "src" / "starintel.asd").read_text(encoding="utf-8")
         documents = (ROOT / "src" / "documents.lisp").read_text(encoding="utf-8")
-        self.assertIn(':version "0.9.1"', asd)
+        self.assertIn(':version "0.10.1"', asd)
         self.assertIn('+starintel-doc-version+ "0.9.0"', documents)
         self.assertIn("schema-version", documents)
         self.assertIn("schema-org", documents)

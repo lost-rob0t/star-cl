@@ -24,6 +24,100 @@ git clone --recurse-submodules https://github.com/lost-rob0t/star-cl.git ~/commo
 
 ** Future plans
 
-This version of the spec, one day will be the defacto stanadard and will be used to generate other spec libs. It gets old re-writing this stuff by hand and most of it is very basic, no advanced functionality other then setting fields
+Canonical types now come from StarLang-generated bindings. Independent language-local object models are retained only for historical compatibility.
 
 See [[file:./TODO.org][Todo list]] for list of stuff i havent done yet
+
+** Canonical StarIntel 0.10.1
+
+StarLang (=lost-rob0t/star-lang=) owns the specification. The active
+=schema/starintel-schema.lock.json= pins a complete immutable generated release;
+this library never regenerates or hand-edits its canonical object model.
+
+Use ASDF =starintel-0101= for the generated =org.starintel.core.v1= structures
+and =starintel.canonical= JSON validation/encoding boundary. Wire documents are
+flat, with =id= and =schemaVersion=, and all declared keys use lowerCamelCase.
+The validator selects the dtype definition from the generated portable manifest,
+resolves JSON Schema references, and applies portable decimal bounds and scale.
+
+#+begin_src lisp
+(asdf:load-system :starintel-0101)
+(starintel.canonical:encode-document
+ (org.starintel.core.v1:make-person
+  :id "person:ada" :dataset "example" :dtype "person"
+  :schemaversion "0.10.1" :fname "Ada"))
+#+end_src
+
+For generated optional slots, NIL means absent; use =:false= for an explicit
+JSON false value. Hash-table JSON inputs preserve missing fields, false, null,
+empty arrays, and opaque extension data directly.
+
+Load =starintel-legacy= explicitly for historical =starintel.legacy:= (nickname
+=spec.legacy:=) CLOS constructors and codecs. The canonical-only root never loads
+this package or the old =spec= nickname. These are explicit compatibility APIs. They retain their original wire format and archived
+=schema/starintel-legacy-schema.lock.json=. They are not a migration API;
+never relabel a legacy payload as 0.10.1. Canonical migration policy/fixtures
+are shipped unchanged from StarLang for downstream migration work.
+
+Repin and verify with:
+
+#+begin_src sh
+python3 bin/sync-starintel-schema.py --commit <full-StarLang-commit>
+python3 bin/sync-starintel-schema.py
+nix flake check -L
+#+end_src
+
+All downstream libraries and applications must consume that same StarLang
+release. The reusable =tools/sync-starintel-consumer.py= tool verifies upstream
+source/output hashes before writing, and fails on vendored drift or a floating
+pin. Existing Python, Nim, or JavaScript models are legacy compatibility inputs,
+not alternate canonical specifications.
+
+* Research operation contracts
+The canonical runtime consumes the immutable StarLang release in the schema lock.
+Its inventory includes only persistent document types, excluding embedded
+transient components; counts are derived from that manifest. Structural generated-schema validation
+is followed by operation DAG, local-reference, scope and completion-evidence
+checks. The shared locked research fixtures exercise the real SBCL boundary.
+Historical =starintel-v090= remains an explicit compatibility API.
+
+The supported-workflow closure pins published authority 9198370f7a6f3e2a5ea00af3efdb6d705e102650.
+Document inventory is derived from persistent entries. Dataset manifest typed
+count entries additionally require unique original map keys. Shared full-field
+fixtures run through generated binding roundtrips, without migrating corpora.
+
+
+* Default public API
+=asdf:load-system :starintel= now loads only the generated canonical root API.
+=starintel:person= and the other persistent dtype functions accept canonical
+keyword fields. =starintel:create= accepts a dtype then the same fields.
+The dtype and schemaVersion are supplied by the API; callers provide required
+identity/dataset/domain fields. No missing identifiers or evidence are invented.
+=encode-document= returns a validated JSON hash-table, =to-json= returns JSON,
+and =decode-document=/=from-json= return generated structs. The exported document,
+schema and release version constants all report0.10.1. Historical structural
+helpers/constants remain explicitly v090-named; opt-in CLOS APIs are isolated in
+starintel.legacy. Existing applications must explicitly migrate or opt in.
+
+*** Exact JSON numbers
+
+Use =starintel.canonical:parse-json= and =starintel.canonical:stringify-json=
+(or their =starintel:= aliases) for the lossless canonical JSON boundary.
+Root =from-json= / =to-json=, canonical =roundtrip-document=, and the canonical
+CLI use this boundary from the first read. Native integers retain arbitrary
+precision; fractional and exponent tokens are =json-number= values with a
+=json-number-lexeme= accessor. Keep these values intact when passing opaque
+extensions through the generated bindings. They serialize as JSON numbers,
+never strings, without binary-float rounding or exponent expansion. Supplying
+an already-rounded Lisp float cannot recover its original decimal digits.
+
+The reader accepts JSON strings, character streams, and UTF-8 pathnames. It
+retains the existing false (=NIL=), null (=CL:NULL=), hash-table, and vector
+representations and strict JSON syntax. JSON Schema integer validation accepts
+exact integral values such as =1.0= and =1e0= and rejects fractional tails.
+
+#+begin_src lisp
+(starintel.canonical:stringify-json
+ (starintel.canonical:parse-json
+  "{\"precise\":0.12345678901234567890123456789,\"huge\":1e10000}"))
+#+end_src

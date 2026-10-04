@@ -1,6 +1,6 @@
 (in-package :cl-user)
-(uiop:define-package :starintel
-  (:nicknames :spec)
+(uiop:define-package :starintel.legacy
+  (:nicknames :spec.legacy)
   (:import-from :alexandria :flatten)
   (:use :cl)
   (:export
